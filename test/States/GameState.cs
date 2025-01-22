@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using KeyboardMania.Controls;
+using Microsoft.Win32;
 
 namespace KeyboardMania.States
 {
@@ -41,19 +42,13 @@ namespace KeyboardMania.States
         private float _audioLatency = 0;
         private bool _mp3Played = false;
         private int _previousScrollValue = 0; // Store the initial scroll value
-        public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
+        public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _mp3FilePath, string _osuFilePath)
             : base(game, graphicsDevice, content)
         {
-            _noteTexture = _content.Load<Texture2D>("Controls/mania-note1");
-            _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
-            _heldNoteTexture = _content.Load<Texture2D>("Controls/mania-note1H");
-            _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
-
-            _screenWidth = graphicsDevice.Viewport.Width;
-            _screenHeight = graphicsDevice.Viewport.Height;
-
-            string mp3FilePath = @"C:\Users\kong3\OneDrive\Desktop\Kieran's Stuff\Visual Studio\Projects\from home pc\keyboard!mania UI\keyboard!mania UI\bin\Debug\maremaris.mp3";
-            _mp3Player = new Mp3Player(mp3FilePath);
+            //below filepaths are for bugtesting, uncomment them to test the game with specific files
+            //_osuFilePath = @"C:\Users\kong3\OneDrive\Desktop\Kieran's Stuff\Visual Studio\Projects\from home pc\keyboard!mania UI\keyboard!mania UI\bin\Debug\M2U - Mare Maris (Raveille) [BASIC].osu";
+            //_mp3FilePath = @"C:\Users\kong3\OneDrive\Desktop\Kieran's Stuff\Visual Studio\Projects\from home pc\keyboard!mania UI\keyboard!mania UI\bin\Debug\maremaris.mp3";
+            _mp3Player = new Mp3Player(_mp3FilePath);
 
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;
             _keyWidth = _keyTexture.Width * _keyScaleFactor;
@@ -86,13 +81,12 @@ namespace KeyboardMania.States
 
             _hitMargin = 200f; // Example hit margin, adjust as needed
 
-            string filePath = @"C:\Users\kong3\OneDrive\Desktop\Kieran's Stuff\Visual Studio\Projects\from home pc\keyboard!mania UI\keyboard!mania UI\bin\Debug\M2U - Mare Maris (Raveille) [BASIC].osu";
-            LoadBeatmap(filePath);
+            LoadBeatmap(_osuFilePath);
         }
 
-        private void LoadBeatmap(string filePath)
+        private void LoadBeatmap(string _osuFilePath)
         {
-            string[] lines = File.ReadAllLines(filePath);
+            string[] lines = File.ReadAllLines(_osuFilePath);
             bool hitObjectSection = false;
 
             foreach (string line in lines)

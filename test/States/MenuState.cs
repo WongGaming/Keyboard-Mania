@@ -89,7 +89,8 @@ namespace KeyboardMania.States
 
         private void PlayGameButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new GameState(_game, _graphicsDevice, _content));
+            _game.ChangeState(new BeatmapChooserState(_game, _graphicsDevice, _content));
+            //_game.ChangeState(new GameState(_game, _graphicsDevice, _content));
         }
 
         private void OptionsButton_Click(object sender, EventArgs e)
