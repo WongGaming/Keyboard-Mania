@@ -1,0 +1,531 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using KeyboardMania.Controls;
+
+namespace KeyboardMania.States
+{
+    public class GameState : State
+    {
+        private Mp3Player _mp3Player;
+        private Dictionary<int, List<HitObject>> _hitObjectsByLane;
+        private Dictionary<int, List<Note>> _activeNotesByLane;
+        private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
+        private Texture2D _keyTexture;
+        private Texture2D _noteTexture;
+        private Texture2D _heldNoteTexture;
+        private Texture2D _hitFeedbackTexture;
+        private double _currentTime;
+        private int _screenWidth;
+        private int _screenHeight;
+        private float _noteScaleFactor;
+        private float _keyScaleFactor = 1f; //2.5 home pc 1f laptop
+        private List<Vector2> _keyPositions;
+        private const int NumberOfKeys = 4;
+        private float _keyWidth;
+        private float _hitMargin;
+        private float _noteVelocity = 1000f; // pixels per second 2000f home pc 1000f laptop
+        private float _hitPointY; // Y position of the hit point
+        private bool[] _keysPressed; // To track if a key was already pressed
+        private Dictionary<int, Keys> _keyMapping; // Map lanes to keys
+
+        // Track hit timings to adjust input lag
+        private List<double> _hitTimings = new List<double>();
+        private double _hitTimingsSum = 0;
+        private double _hitTimingsAverage = 0;
+        private double _latencyRemover = 222.92825; // Enter the average latency experienced
+        private float _audioLatency = 0;
+        private bool _mp3Played = false;
+        private int _previousScrollValue = 0; // Store the initial scroll value
+        public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
+            : base(game, graphicsDevice, content)
+        {
+            _noteTexture = _content.Load<Texture2D>("Controls/mania-note1");
+            _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
+            _heldNoteTexture = _content.Load<Texture2D>("Controls/mania-note1H");
+            _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
+
+            _screenWidth = graphicsDevice.Viewport.Width;
+            _screenHeight = graphicsDevice.Viewport.Height;
+
+            string mp3FilePath = @"C:\Users\kong3\OneDrive\Desktop\Kieran's Stuff\Visual Studio\Projects\from home pc\keyboard!mania UI\keyboard!mania UI\bin\Debug\maremaris.mp3";
+            _mp3Player = new Mp3Player(mp3FilePath);
+
+            _noteScaleFactor = 100f * _keyScaleFactor / 256f;
+            _keyWidth = _keyTexture.Width * _keyScaleFactor;
+            float keyHeight = _keyTexture.Height * _keyScaleFactor;
+            float bottomPositionY = _screenHeight - keyHeight - 10;
+
+            _hitPointY = _screenHeight - keyHeight; //1410 on my home PC
+
+            _keyPositions = CalculateKeyPositions(NumberOfKeys, _keyWidth, bottomPositionY);
+
+            _hitObjectsByLane = new Dictionary<int, List<HitObject>>();
+            _activeNotesByLane = new Dictionary<int, List<Note>>();
+            _hitFeedbacks = new List<HitFeedback>(); // Initialize hit feedbacks list
+            _keysPressed = new bool[NumberOfKeys]; // Initialize key pressed states
+
+            // Initialize key mapping
+            _keyMapping = new Dictionary<int, Keys>
+            {
+                { 0, Keys.D },
+                { 1, Keys.F },
+                { 2, Keys.J },
+                { 3, Keys.K }
+            };
+
+            for (int i = 0; i < NumberOfKeys; i++)
+            {
+                _hitObjectsByLane[i] = new List<HitObject>();
+                _activeNotesByLane[i] = new List<Note>();
+            }
+
+            _hitMargin = 200f; // Example hit margin, adjust as needed
+
+            string filePath = @"C:\Users\kong3\OneDrive\Desktop\Kieran's Stuff\Visual Studio\Projects\from home pc\keyboard!mania UI\keyboard!mania UI\bin\Debug\M2U - Mare Maris (Raveille) [BASIC].osu";
+            LoadBeatmap(filePath);
+        }
+
+        private void LoadBeatmap(string filePath)
+        {
+            string[] lines = File.ReadAllLines(filePath);
+            bool hitObjectSection = false;
+
+            foreach (string line in lines)
+            {
+                if (line.StartsWith("[HitObjects]"))
+                {
+                    hitObjectSection = true;
+                    continue;
+                }
+
+                if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
+                {
+                    var hitObject = ParseHitObject(line);
+                    _hitObjectsByLane[hitObject.Lane].Add(hitObject);
+                }
+            }
+        }
+
+        private HitObject ParseHitObject(string line)
+        {
+            var parts = line.Split(',');
+            int x = int.Parse(parts[0]);
+            double startTime = double.Parse(parts[2]);
+            int endTime = int.Parse(parts[5].Split(':')[0]);
+
+            int lane = x / 128;
+            bool isHeldNote = endTime > startTime;
+
+            var hitObject =new HitObject
+            {
+                Lane = lane,
+                StartTime = startTime,
+                EndTime = endTime,
+                IsHeldNote = isHeldNote
+            };
+            if (isHeldNote)
+            { 
+                //ParseHoldNoteSegments(hitObject,lane); 
+            }
+            return hitObject;
+        }
+        private void ParseHoldNoteSegments(HitObject hitObject, int lane)
+        {
+            double segmentDuration = 100; // Milliseconds between each segment
+            double currentTime = hitObject.StartTime;
+
+            while (currentTime < hitObject.EndTime)
+            {
+                var segment = new HitObject
+                {
+                    Lane = lane,
+                    StartTime = currentTime,
+                    EndTime = currentTime,
+                    IsHeldNote = true
+                };
+                _hitObjectsByLane[lane].Add(segment);
+                currentTime += segmentDuration;
+            }
+        }
+        public override void Update(GameTime gameTime)
+        {
+            // Start the song if it's the first update frame
+            if (_currentTime == 0)
+            {
+                _mp3Player.Play();
+            }
+
+            MouseState mouseState = Mouse.GetState();
+
+            //// Track the scroll wheel value
+            //int scrollValue = mouseState.ScrollWheelValue;
+
+            //// Check if the scroll value has changed
+            //if (scrollValue > _previousScrollValue)
+            //{
+            //    // Increase volume when scrolling up
+            //    _mp3Player.Volume = Math.Min(_mp3Player.Volume + 0.05f, 1.0f); // Increment the volume, max 1.0f
+            //}
+            //else if (scrollValue < _previousScrollValue)
+            //{
+            //    // Decrease volume when scrolling down
+            //    _mp3Player.Volume = Math.Max(_mp3Player.Volume - 0.05f, 0.0f); // Decrement the volume, min 0.0f
+            //}
+
+            //// Store the current scroll value for the next frame
+            //_previousScrollValue = scrollValue;
+
+            _mp3Player.Volume = 0.3f;
+            _currentTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+
+            // Update hit feedbacks movement
+            for (int i = _hitFeedbacks.Count - 1; i >= 0; i--)
+            {
+                _hitFeedbacks[i].Update(gameTime);
+                if (_hitFeedbacks[i].IsOffScreen(_screenHeight))
+                {
+                    _hitFeedbacks.RemoveAt(i);
+                }
+            }
+
+            for (int lane = 0; lane < NumberOfKeys; lane++)
+            {
+                var hitObjects = _hitObjectsByLane[lane];
+                var activeNotes = _activeNotesByLane[lane];
+
+                // Sort active notes by their Y-position (lower notes first)
+                activeNotes.Sort((n1, n2) => n1.Position.Y.CompareTo(n2.Position.Y));
+
+                // Generate new notes
+                for (int i = hitObjects.Count - 1; i >= 0; i--)
+                {
+                    var hitObject = hitObjects[i];
+                    double spawnTime = hitObject.StartTime - (_hitPointY / _noteVelocity * 1000);
+                    var noteTexture = _noteTexture;
+                    if (!activeNotes.Exists(note => note.HitObject == hitObject) && _currentTime >= spawnTime)
+                    {
+                        if (hitObject.IsHeldNote)
+                        {
+                            noteTexture = _heldNoteTexture;
+                        }
+                        float xPosition = (_screenWidth / 2) - (_keyWidth * NumberOfKeys / 2) + (hitObject.Lane * _keyWidth);
+                        var note = new Note(noteTexture, hitObject.IsHeldNote)
+                        {
+                            Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
+                            HitObject = hitObject,
+                            Scale = _noteScaleFactor,
+                            Velocity = new Vector2(0, _noteVelocity)
+                        };
+                        activeNotes.Add(note);
+                        hitObjects.RemoveAt(i); // Remove the note from the hitObjects list once it has spawned
+                    }
+                }
+
+                // Update active notes and check for hits (starting with the closest to the hit point)
+                for (int i = activeNotes.Count - 1; i >= 0; i--)
+                {
+                    var note = activeNotes[i];
+                    note.Update(gameTime);
+
+                    // Check if note is hit
+                    if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote)
+                    {
+                        activeNotes.RemoveAt(i);
+                       
+                    }
+
+                    if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote)
+                    {
+                        activeNotes.RemoveAt(i);
+                    }
+                    else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note))
+                    {
+                        activeNotes.RemoveAt(i);
+                    }
+                }
+            }
+
+            HandleKeyReleases(); // Handle key releases for feedback
+        }
+
+        private bool CheckForHit(Note note, float hitPointY, int lane)
+        {
+            KeyboardState keyboardState = Keyboard.GetState();
+
+            // Check if the key was just pressed
+            if (keyboardState.IsKeyDown(_keyMapping[lane]) && !_keysPressed[lane])
+            {
+                _keysPressed[lane] = true; // Mark key as pressed
+                // Calculate the time difference
+                double timeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover; // Adjusted for latency
+
+                // Debug: Output hit detection information
+                //Console.WriteLine($"Checking hit: Lane={lane}, TimeDiff={timeDifference}");
+
+                // Check if within hit margin based only on time
+                if (Math.Abs(timeDifference) <= _hitMargin)
+                {
+                    // Hit registered
+                    _hitTimings.Add(timeDifference);
+                    _hitTimingsSum += timeDifference;
+                    _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count;
+
+                if (note.HitObject.IsHeldNote)
+                {
+                        note.StartHolding(_currentTime);
+                }
+                    return true;
+                }
+            }
+            if (note.HitObject.IsHeldNote && _keysPressed[lane])
+            {
+                if (keyboardState.IsKeyUp(_keyMapping[lane]))
+                {
+                _keysPressed[lane] = false;
+            //    if(!IsHoldComplete(_currentTime, note.HitObject.EndTime, _hitMargin) )
+            //    {
+            //           note.FailHold();
+            //            return false;
+            //    }
+            //    }
+            //    if (IsHoldComplete(_currentTime, note.HitObject.EndTime, _hitMargin))
+            //    {
+            //        note.CompleteHold();
+            //        return true;
+               }
+            }
+
+            return false;
+        }
+        private bool IsHoldComplete(double currentTime, int holdEndTime, float hitMargin)
+        {
+            if (currentTime == holdEndTime)
+            {
+                return true;
+            }
+            else if (currentTime > holdEndTime)
+            {
+                if ((currentTime - hitMargin) <= holdEndTime)
+                {
+                    return true;
+                }
+            }
+            else if (currentTime < holdEndTime)
+            {
+             if ((currentTime + hitMargin) >= holdEndTime)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        private void HandleKeyReleases()
+        {
+            KeyboardState keyboardState = Keyboard.GetState();
+
+            // Check each lane for key release
+            for (int lane = 0; lane < NumberOfKeys; lane++)
+            {
+                if (keyboardState.IsKeyUp(_keyMapping[lane]) && _keysPressed[lane])
+                {
+                    // Key was released, add feedback and reset pressed state
+                    _hitFeedbacks.Add(new HitFeedback(_hitFeedbackTexture, _keyPositions[lane], _noteVelocity));
+                    _keysPressed[lane] = false;
+                }
+            }
+        }
+
+        public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        {
+            _graphicsDevice.Clear(Color.Black);
+            spriteBatch.Begin();
+
+            foreach (var laneNotes in _activeNotesByLane.Values)
+            {
+                foreach (var note in laneNotes)
+                {
+                    note.Draw(gameTime, spriteBatch);
+                }
+            }
+
+            var keyStates = new[] { Keys.D, Keys.F, Keys.J, Keys.K };
+            for (int i = 0; i < keyStates.Length; i++)
+            {
+                if (Keyboard.GetState().IsKeyDown(keyStates[i]))
+                {
+                    spriteBatch.Draw(_hitFeedbackTexture, _keyPositions[i], null, Color.White, 0f, Vector2.Zero, new Vector2(_keyScaleFactor), SpriteEffects.None, 0f);
+                }
+            }
+
+            // Draw hit feedbacks first so that keys are rendered above them
+            foreach (var feedback in _hitFeedbacks)
+            {
+                feedback.Draw(gameTime, spriteBatch, _keyScaleFactor);
+            }
+
+            foreach (var keyPosition in _keyPositions)
+            {
+                spriteBatch.Draw(_keyTexture, keyPosition, null, Color.White, 0f, Vector2.Zero, new Vector2(_keyScaleFactor), SpriteEffects.None, 0f);
+            }
+
+            spriteBatch.End();
+        }
+
+        public override void PostUpdate(GameTime gameTime)
+        {
+        }
+
+        private List<Vector2> CalculateKeyPositions(int numberOfKeys, float keyWidth, float bottomPositionY)
+        {
+            var keyPositions = new List<Vector2>();
+            float totalWidth = numberOfKeys * keyWidth;
+            float startX = (_screenWidth / 2) - (totalWidth / 2);
+
+            for (int i = 0; i < NumberOfKeys; i++)
+            {
+                float xPosition = startX + (i * keyWidth);
+                keyPositions.Add(new Vector2(xPosition, bottomPositionY));
+            }
+
+            return keyPositions;
+        }
+    }
+
+    public class HitObject
+    {
+        public int Lane { get; set; }
+        public double StartTime { get; set; }
+        public double EndTime { get; set; }
+        public bool IsHeldNote { get; set; }
+    }
+
+    public class Note : Component
+    {
+        public HitObject HitObject { get; set; }
+        public Texture2D Texture => _texture; // Expose texture to access height for hit calculation
+        private Texture2D _texture;
+        private Texture2D _endTexture;
+        public Vector2 Position;
+        public Vector2 Velocity;
+        private bool _isHeld;
+        private bool _currentlyHeld = false; //track if note is being hit at the moment
+        private double _holdStartTime;
+        public float Scale { get; set; } = 1f;
+
+        public Note(Texture2D texture, bool isHeld)
+        {
+            _texture = texture ?? throw new ArgumentNullException(nameof(texture), "Note texture cannot be null.");
+            _isHeld = isHeld;
+
+            if (_isHeld)
+            {
+                _endTexture = _texture;
+            }
+        }
+        public void StartHolding(double currentTime)
+        {
+            _isHeld = true;
+            _holdStartTime = currentTime;
+        }
+
+        public void FailHold()
+        {
+            _isHeld = false;
+            Console.WriteLine("Hold note failed!");
+        }
+
+        public void CompleteHold()
+        {
+            _isHeld = false;
+            Console.WriteLine("Hold note completed!");
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            Position += Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        }
+
+        public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        {
+            if (_texture != null)
+            {
+                if (!_isHeld)
+                {
+                    spriteBatch.Draw(_texture, Position, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+                }
+                else
+                {
+                    DrawHoldNoteSegments(spriteBatch);
+                    //the below is a bugtest, uses old hold algorithms, (WILL NOT COUNT HOLD POINTS) - use for checking hold locations
+                    //spriteBatch.Draw(_texture, Position, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Note has null texture");
+            }
+        }
+        private void DrawHoldNoteSegments(SpriteBatch spriteBatch)
+        {
+            float totalHeight = Convert.ToSingle((HitObject.EndTime - HitObject.StartTime) / 1000.0) * Velocity.Y;
+            int segments = Convert.ToInt32(totalHeight / (_texture.Height * Scale));
+            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale));
+            for (int i = 0; i <= (segments - 1) * 2; i++)
+            {
+                Vector2 segmentPosition = new Vector2(Position.X, Position.Y - (i * _texture.Height * Scale) / 2);
+                spriteBatch.Draw(_texture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+            }
+            DrawEndTexture(spriteBatch, finalPosition);
+        }
+        private void DrawEndTexture(SpriteBatch spriteBatch, Vector2 finalPositon)
+        {
+            Vector2 originOfTexture = new Vector2(_endTexture.Width, _endTexture.Height);
+            spriteBatch.Draw(_endTexture, finalPositon, null, Color.White, MathHelper.Pi, originOfTexture, Scale, SpriteEffects.None, 0f);
+        }
+        public bool IsOffScreen(int screenHeight)
+        {
+            float noteHeight = _texture.Height * Scale;
+            return Position.Y > screenHeight + noteHeight;
+        }
+        public bool IsHoldOffScreen(int screenHeight, Note note)
+        {
+            float noteHeight = _texture.Height * Scale;
+            float totalHeight = Convert.ToSingle((HitObject.EndTime - HitObject.StartTime) / 1000.0) * Velocity.Y;
+            return Position.Y > screenHeight + totalHeight;
+        }
+    }
+
+    public class HitFeedback
+    {
+        private Texture2D _texture;
+        public Vector2 Position;
+        private float _velocity;
+
+        public HitFeedback(Texture2D texture, Vector2 startPosition, float velocity)
+        {
+            _texture = texture;
+            Position = startPosition;
+            _velocity = velocity;
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            Position.Y += _velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        }
+
+        public void Draw(GameTime gameTime, SpriteBatch spriteBatch, float keyScaleFactor)
+        {
+            spriteBatch.Draw(_texture, Position, null, Color.White, 0f, Vector2.Zero, keyScaleFactor, SpriteEffects.None, 0f);
+        }
+
+        public bool IsOffScreen(int screenHeight)
+        {
+            return Position.Y > screenHeight;
+        }
+    }
+}
