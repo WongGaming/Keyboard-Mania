@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 
 
@@ -21,16 +23,18 @@ namespace KeyboardMania.States
         private int _selectedItem; //currently selected folder
         private SpriteFont _font;
         private GraphicsDevice _graphicsDevice;
-
+        private List<string> _beatmaps;
         public BeatmapChooserState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
             : base(game, graphicsDevice, content)
         {
             _graphicsDevice = graphicsDevice;
             _font = _content.Load<SpriteFont>("Fonts/Font");
-            _rootDirectory = Path.Combine(Environment.CurrentDirectory, "Content", "Beatmaps");
+            _rootDirectory = Path.Combine(Environment.CurrentDirectory, "Beatmaps");
             _folders = new List<string>();
             _selectedItem = 0;
+            _beatmaps = new List<string>();
             LoadFolders();
+            GetBeatmaps();
         }
 
         private void LoadFolders()
@@ -46,63 +50,87 @@ namespace KeyboardMania.States
 
         private void GetBeatmaps()
         {
-            var beatmaps = Directory.GetFiles(Path.Combine(_rootDirectory, _folders[_selectedItem]), "*.osu");
-            foreach (var beatmap in beatmaps)
+            for(int i = 0; i < _folders.Count; i++)
             {
-                Console.WriteLine(beatmap);
+                var beatmaps = Directory.GetFiles(Path.Combine(_rootDirectory, _folders[i]), "*.osu");
+                foreach (var osu in beatmaps)
+                {
+                    Console.WriteLine(osu);
+                    _beatmaps.Add(osu);
+                }
             }
         }
+        bool firstPress = true;
+        bool holding = false; //attempt to implement holding to move up and down faster
         private void HandleInput()
         {
             var keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Keys.Down))
+            if (keyboardState.IsKeyDown(Keys.Down) && firstPress)
             {
                 _selectedItem++;
                 if (_selectedItem >= _folders.Count)
                 {
                     _selectedItem = 0;
                 }
+                firstPress = false;
             }
-            else if (keyboardState.IsKeyDown(Keys.Up))
+            else if (keyboardState.IsKeyDown(Keys.Up) && firstPress)
             {
                 _selectedItem--;
                 if (_selectedItem < 0)
                 {
                     _selectedItem = _folders.Count - 1;
                 }
+                firstPress = false;
             }
-            else if (keyboardState.IsKeyDown(Keys.Enter))
+            else if (keyboardState.IsKeyDown(Keys.Enter) && firstPress)
             {
-                _game.ChangeState(new GameState(_game, _graphicsDevice, _content, Path.Combine(_rootDirectory, _folders[_selectedItem]), LookForMp3File()));
+                _game.ChangeState(new GameState(_game, _graphicsDevice, _content, _beatmaps[_selectedItem], LookForMp3File()));
+            }
+            if(keyboardState.IsKeyUp(Keys.Down) && keyboardState.IsKeyUp(Keys.Up) && keyboardState.IsKeyUp(Keys.Enter))
+            {
+                firstPress = true;
             }
         }
 
         private string LookForMp3File()
         {
-            var files = Directory.GetFiles(Path.Combine(_rootDirectory, _folders[_selectedItem]), "*.mp3");
-            if (files.Length > 0)
+            var files = Directory.GetFiles(Path.Combine(_rootDirectory, _folders[_selectedItem]));
+            foreach (var file in files)
             {
-                return files[0];
+                if (file.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                {
+                    return file;
+                }
             }
             return null;
         }
 
         public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            foreach (string directory in _folders)
+            spriteBatch.Begin();
+            for (int i = 0; i < _beatmaps.Count; i++)
             {
-                spriteBatch.DrawString(_font, directory, new Vector2(100, 100), Color.White);
+                if (i == _selectedItem)
+                {
+                    spriteBatch.DrawString(_font, _beatmaps[i], new Vector2(100, 100 + i * 20), Color.Red);
+                }
+                else
+                {
+                    spriteBatch.DrawString(_font, _beatmaps[i], new Vector2(100, 100 + i * 20), Color.White);
+                }
             }
+
+            spriteBatch.End();
         }
 
         public override void PostUpdate(GameTime gameTime)
         {
-            throw new NotImplementedException();
         }
 
         public override void Update(GameTime gameTime)
         {
-            throw new NotImplementedException();
+            HandleInput();
         }
     }
 }

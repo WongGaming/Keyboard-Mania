@@ -65,7 +65,7 @@ namespace KeyboardMania.States
             spriteBatch.Begin();
 
             // Define a scale factor to shrink the texture
-            float shrinkScale = 0.35f; // .75f = home pc, 0.35f = laptop
+            float shrinkScale = 0.75f; // .75f = home pc, 0.35f = laptop
             // Center the texture on the screen
             Vector2 position = new Vector2((_graphicsDevice.Viewport.Width - (_logo.Width * shrinkScale)) / 2,(_graphicsDevice.Viewport.Height - (_logo.Height * shrinkScale)) / 2 - (_graphicsDevice.Viewport.Height / 4));
 
@@ -100,7 +100,6 @@ namespace KeyboardMania.States
 
         public override void PostUpdate(GameTime gameTime)
         {
-            // Remove sprites if they're not needed
         }
 
         public override void Update(GameTime gameTime)

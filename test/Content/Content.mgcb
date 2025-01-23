@@ -13,44 +13,6 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Beatmaps/Alive - ClariS/alive claris.mp3
-/importer:Mp3Importer
-/processor:SongProcessor
-/processorParam:Quality=Best
-/build:Beatmaps/Alive - ClariS/alive claris.mp3
-
-#begin Beatmaps/Alive - ClariS/ClariS - ALIVE (TV Size) (Angki) [Ui's Beginner].osu
-/importer:
-/processor:
-/build:Beatmaps/Alive - ClariS/ClariS - ALIVE (TV Size) (Angki) [Ui's Beginner].osu
-
-#begin Beatmaps/M2U - Mare Maris/M2U - Mare Maris (Raveille) [BASIC].osu
-/importer:
-/processor:
-/build:Beatmaps/M2U - Mare Maris/M2U - Mare Maris (Raveille) [BASIC].osu
-
-#begin Beatmaps/M2U - Mare Maris/M2U - Mare Maris (Raveille) [EXPERT].osu
-/importer:
-/processor:
-/build:Beatmaps/M2U - Mare Maris/M2U - Mare Maris (Raveille) [EXPERT].osu
-
-#begin Beatmaps/M2U - Mare Maris/maremaris.mp3
-/importer:Mp3Importer
-/processor:SongProcessor
-/processorParam:Quality=Best
-/build:Beatmaps/M2U - Mare Maris/maremaris.mp3
-
-#begin Beatmaps/M2U - Myosotis/M2U - Myosotis (ZZHBOY) [Hard].osu
-/importer:
-/processor:
-/build:Beatmaps/M2U - Myosotis/M2U - Myosotis (ZZHBOY) [Hard].osu
-
-#begin Beatmaps/M2U - Myosotis/Myosotis.mp3
-/importer:Mp3Importer
-/processor:SongProcessor
-/processorParam:Quality=Best
-/build:Beatmaps/M2U - Myosotis/Myosotis.mp3
-
 #begin Controls/Button.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -153,3 +115,4 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/black transparent.png;Textures/blacklogo.png
+

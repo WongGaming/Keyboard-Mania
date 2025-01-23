@@ -42,7 +42,7 @@ namespace KeyboardMania.States
         private float _audioLatency = 0;
         private bool _mp3Played = false;
         private int _previousScrollValue = 0; // Store the initial scroll value
-        public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _mp3FilePath, string _osuFilePath)
+        public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
             : base(game, graphicsDevice, content)
         {
             //below filepaths are for bugtesting, uncomment them to test the game with specific files
