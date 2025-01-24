@@ -24,14 +24,17 @@ namespace KeyboardMania.States
         private int _screenWidth;
         private int _screenHeight;
         private float _noteScaleFactor;
-        private float _keyScaleFactor = 1f; //2.5 home pc 1f laptop
+
+        //work out an algorithm to calculate the scale
+        private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
         private List<Vector2> _keyPositions;
         private const int NumberOfKeys = 4;
         private float _keyWidth;
         private float _hitMargin;
-        private float _noteVelocity = 1000f; // pixels per second 2000f home pc 1000f laptop
+        private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
         private float _hitPointY; // Y position of the hit point
         private bool[] _keysPressed; // To track if a key was already pressed
+        private int _comboCount = 0;
         private Dictionary<int, Keys> _keyMapping; // Map lanes to keys
 
         // Track hit timings to adjust input lag
@@ -45,9 +48,18 @@ namespace KeyboardMania.States
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
             : base(game, graphicsDevice, content)
         {
+            //don't delete these like before!!
+            _noteTexture = _content.Load<Texture2D>("Controls/mania-note1");
+            _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
+            _heldNoteTexture = _content.Load<Texture2D>("Controls/mania-note1H");
+            _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
+
+            _screenWidth = graphicsDevice.Viewport.Width;
+            _screenHeight = graphicsDevice.Viewport.Height;
+
             //below filepaths are for bugtesting, uncomment them to test the game with specific files
-            //_osuFilePath = @"C:\Users\kong3\OneDrive\Desktop\Kieran's Stuff\Visual Studio\Projects\from home pc\keyboard!mania UI\keyboard!mania UI\bin\Debug\M2U - Mare Maris (Raveille) [BASIC].osu";
-            //_mp3FilePath = @"C:\Users\kong3\OneDrive\Desktop\Kieran's Stuff\Visual Studio\Projects\from home pc\keyboard!mania UI\keyboard!mania UI\bin\Debug\maremaris.mp3";
+            //_osuFilePath = @"C:\Users\kong3\source\repos\Keyboard-Mania\test\Beatmaps\M2U - Mare Maris\M2U - Mare Maris (Raveille) [EXPERT].osu";
+            //_mp3FilePath = @"C:\Users\kong3\source\repos\Keyboard-Mania\test\Beatmaps\M2U - Mare Maris\maremaris.mp3";
             _mp3Player = new Mp3Player(_mp3FilePath);
 
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;
@@ -79,7 +91,7 @@ namespace KeyboardMania.States
                 _activeNotesByLane[i] = new List<Note>();
             }
 
-            _hitMargin = 200f; // Example hit margin, adjust as needed
+            _hitMargin = 2000f; // Example hit margin, adjust as needed
 
             LoadBeatmap(_osuFilePath);
         }
@@ -177,7 +189,7 @@ namespace KeyboardMania.States
             _mp3Player.Volume = 0.3f;
             _currentTime += gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            // Update hit feedbacks movement
+            // Update hit feedbacks movement REPLACE THIS WITH SCALING + FADEOUT INSTEAD OF MOVEMENT (OSU MANIA STYLE)
             for (int i = _hitFeedbacks.Count - 1; i >= 0; i--)
             {
                 _hitFeedbacks[i].Update(gameTime);
@@ -230,16 +242,20 @@ namespace KeyboardMania.States
                     if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote)
                     {
                         activeNotes.RemoveAt(i);
-                       
+                        _comboCount++; // Increase combo count, FOR SINGLE NOTES COMMENT TO CHECK IF HITS REGISTERED
+
                     }
 
                     if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote)
                     {
                         activeNotes.RemoveAt(i);
+                        _comboCount =0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
+
                     }
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note))
                     {
                         activeNotes.RemoveAt(i);
+                        _comboCount = 0; // Reset combo count, IF HOLD NOTE IS MISSED (OFFSCREEN) (THIS ONLY CHECKS IF THE END PASSES THE FRONT (CURRENTLY IGNORES THE FRONT)
                     }
                 }
             }
@@ -338,6 +354,7 @@ namespace KeyboardMania.States
         {
             _graphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
+            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_comboCount), new Vector2(100, 100 * 20), Color.Red); //bugtesting combo counter
 
             foreach (var laneNotes in _activeNotesByLane.Values)
             {
@@ -455,8 +472,6 @@ namespace KeyboardMania.States
                 else
                 {
                     DrawHoldNoteSegments(spriteBatch);
-                    //the below is a bugtest, uses old hold algorithms, (WILL NOT COUNT HOLD POINTS) - use for checking hold locations
-                    //spriteBatch.Draw(_texture, Position, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
                 }
             }
             else
@@ -509,7 +524,7 @@ namespace KeyboardMania.States
 
         public void Update(GameTime gameTime)
         {
-            Position.Y += _velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Position.Y += _velocity * (float)gameTime.ElapsedGameTime.TotalSeconds; //change this to instead change the vertical width to shrink + fadeout (saves more processor + how osu mania does it)
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch, float keyScaleFactor)

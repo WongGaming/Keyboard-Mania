@@ -29,7 +29,9 @@ namespace KeyboardMania.States
         {
             _graphicsDevice = graphicsDevice;
             _font = _content.Load<SpriteFont>("Fonts/Font");
-            _rootDirectory = Path.Combine(Environment.CurrentDirectory, "Beatmaps");
+            //_rootDirectory = Path.Combine(Environment.CurrentDirectory, "Beatmaps"); (old, only works for the files in BIN folder)
+            _rootDirectory = Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "Beatmaps");
+            _rootDirectory = Path.GetFullPath(_rootDirectory); //this parses the path, removes 3 locations, and then looks for Beatmaps folder .
             _folders = new List<string>();
             _selectedItem = 0;
             _beatmaps = new List<string>();
@@ -48,7 +50,7 @@ namespace KeyboardMania.States
         }
 
 
-        private void GetBeatmaps()
+        private void GetBeatmaps() //loads all beatmaps from all folders in Beatmaps
         {
             for(int i = 0; i < _folders.Count; i++)
             {
