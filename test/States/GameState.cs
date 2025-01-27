@@ -18,7 +18,8 @@ namespace KeyboardMania.States
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
         private Texture2D _keyTexture;
         private Texture2D _noteTexture;
-        private Texture2D _heldNoteTexture;
+        private Texture2D _holdHeadTexture;
+        private Texture2D _holdLengthTexture;
         private Texture2D _hitFeedbackTexture;
         private double _currentTime;
         private int _screenWidth;
@@ -26,12 +27,12 @@ namespace KeyboardMania.States
         private float _noteScaleFactor;
 
         //work out an algorithm to calculate the scale
-        private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
+        private float _keyScaleFactor = 1f; //2.5 home pc 1f laptop 
         private List<Vector2> _keyPositions;
         private const int NumberOfKeys = 4;
         private float _keyWidth;
         private float _hitMargin;
-        private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
+        private float _noteVelocity = 1000f; // pixels per second 2000f home pc 1000f laptop
         private float _hitPointY; // Y position of the hit point
         private bool[] _keysPressed; // To track if a key was already pressed
         private int _comboCount = 0;
@@ -51,9 +52,9 @@ namespace KeyboardMania.States
             //don't delete these like before!!
             _noteTexture = _content.Load<Texture2D>("Controls/mania-note1");
             _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
-            _heldNoteTexture = _content.Load<Texture2D>("Controls/mania-note1H");
+            _holdHeadTexture = _content.Load<Texture2D>("Controls/mania-note1H");
+            _holdLengthTexture = _content.Load<Texture2D>("Controls/mania-note1L");
             _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
-
             _screenWidth = graphicsDevice.Viewport.Width;
             _screenHeight = graphicsDevice.Viewport.Height;
 
@@ -217,7 +218,7 @@ namespace KeyboardMania.States
                     {
                         if (hitObject.IsHeldNote)
                         {
-                            noteTexture = _heldNoteTexture;
+                            noteTexture = _holdHeadTexture;
                         }
                         float xPosition = (_screenWidth / 2) - (_keyWidth * NumberOfKeys / 2) + (hitObject.Lane * _keyWidth);
                         var note = new Note(noteTexture, hitObject.IsHeldNote)
@@ -245,8 +246,7 @@ namespace KeyboardMania.States
                         _comboCount++; // Increase combo count, FOR SINGLE NOTES COMMENT TO CHECK IF HITS REGISTERED
 
                     }
-
-                    if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote)
+                    else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote)
                     {
                         activeNotes.RemoveAt(i);
                         _comboCount =0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
@@ -354,7 +354,7 @@ namespace KeyboardMania.States
         {
             _graphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
-            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_comboCount), new Vector2(100, 100 * 20), Color.Red); //bugtesting combo counter
+            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_comboCount), new Vector2(100, 1000), Color.Red); //bugtesting combo counter Vector2(x, 2000) for home pc, Vector2(x,1000) for laptop
 
             foreach (var laneNotes in _activeNotesByLane.Values)
             {
@@ -430,7 +430,7 @@ namespace KeyboardMania.States
 
         public Note(Texture2D texture, bool isHeld)
         {
-            _texture = texture ?? throw new ArgumentNullException(nameof(texture), "Note texture cannot be null.");
+            _texture = texture;
             _isHeld = isHeld;
 
             if (_isHeld)
@@ -484,6 +484,8 @@ namespace KeyboardMania.States
             float totalHeight = Convert.ToSingle((HitObject.EndTime - HitObject.StartTime) / 1000.0) * Velocity.Y;
             int segments = Convert.ToInt32(totalHeight / (_texture.Height * Scale));
             Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale));
+            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture.Height * Scale) / 2);
+            spriteBatch.Draw(_texture, headPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
             for (int i = 0; i <= (segments - 1) * 2; i++)
             {
                 Vector2 segmentPosition = new Vector2(Position.X, Position.Y - (i * _texture.Height * Scale) / 2);
