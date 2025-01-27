@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using KeyboardMania.Controls;
 using Microsoft.Win32;
+using System.Reflection.Metadata;
 
 namespace KeyboardMania.States
 {
@@ -19,7 +20,7 @@ namespace KeyboardMania.States
         private Texture2D _keyTexture;
         private Texture2D _noteTexture;
         private Texture2D _holdHeadTexture;
-        private Texture2D _holdLengthTexture;
+        //private Texture2D _holdLengthTexture; possibly obsolete
         private Texture2D _hitFeedbackTexture;
         private double _currentTime;
         private int _screenWidth;
@@ -53,7 +54,7 @@ namespace KeyboardMania.States
             _noteTexture = _content.Load<Texture2D>("Controls/mania-note1");
             _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
             _holdHeadTexture = _content.Load<Texture2D>("Controls/mania-note1H");
-            _holdLengthTexture = _content.Load<Texture2D>("Controls/mania-note1L");
+            //_holdLengthTexture = _content.Load<Texture2D>("Controls/mania-note1L");
             _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
             _screenWidth = graphicsDevice.Viewport.Width;
             _screenHeight = graphicsDevice.Viewport.Height;
@@ -221,7 +222,7 @@ namespace KeyboardMania.States
                             noteTexture = _holdHeadTexture;
                         }
                         float xPosition = (_screenWidth / 2) - (_keyWidth * NumberOfKeys / 2) + (hitObject.Lane * _keyWidth);
-                        var note = new Note(noteTexture, hitObject.IsHeldNote)
+                        var note = new Note(_content, noteTexture, hitObject.IsHeldNote)
                         {
                             Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
                             HitObject = hitObject,
@@ -420,7 +421,8 @@ namespace KeyboardMania.States
         public HitObject HitObject { get; set; }
         public Texture2D Texture => _texture; // Expose texture to access height for hit calculation
         private Texture2D _texture;
-        private Texture2D _endTexture;
+        //private Texture2D 
+        private Texture2D _holdLengthTexture;
         public Vector2 Position;
         public Vector2 Velocity;
         private bool _isHeld;
@@ -428,14 +430,13 @@ namespace KeyboardMania.States
         private double _holdStartTime;
         public float Scale { get; set; } = 1f;
 
-        public Note(Texture2D texture, bool isHeld)
+        public Note(ContentManager content, Texture2D texture, bool isHeld, string holdTexturePath = "Controls/mania-note1L") //debug sets it to default white hold length
         {
             _texture = texture;
             _isHeld = isHeld;
-
-            if (_isHeld)
+            if (isHeld)
             {
-                _endTexture = _texture;
+                _holdLengthTexture = content.Load<Texture2D>(holdTexturePath);
             }
         }
         public void StartHolding(double currentTime)
@@ -481,22 +482,35 @@ namespace KeyboardMania.States
         }
         private void DrawHoldNoteSegments(SpriteBatch spriteBatch)
         {
-            float totalHeight = Convert.ToSingle((HitObject.EndTime - HitObject.StartTime) / 1000.0) * Velocity.Y;
-            int segments = Convert.ToInt32(totalHeight / (_texture.Height * Scale));
-            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale));
-            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture.Height * Scale) / 2);
-            spriteBatch.Draw(_texture, headPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
-            for (int i = 0; i <= (segments - 1) * 2; i++)
+            int segments;
+            float totalHeight = Convert.ToSingle((HitObject.EndTime - HitObject.StartTime) / 1000.0) * Velocity.Y; //using speed = distance / time, distance - time * speed
+            segments = Convert.ToInt32(Math.Ceiling((totalHeight - (2 * _texture.Height) )/ (_holdLengthTexture.Height * Scale))); //2.0 version, caused error when segments < 1
+            if (segments < 1)
             {
-                Vector2 segmentPosition = new Vector2(Position.X, Position.Y - (i * _texture.Height * Scale) / 2);
-                spriteBatch.Draw(_texture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+                segments = 1;
+            }
+            //segments = Convert.ToInt32(Math.Ceiling(totalHeight / (_texture.Height * Scale))); //1.0 version, used for old segment position tests (remove l8r)
+            //Vector2 finalPosition = new Vector2(Position.X, Position.Y - ((segments*Scale*_holdLengthTexture.Height) + _texture.Height * Scale));
+            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale)); //old finalPosition calculator, finds the final value by considering _texture.Height
+            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture.Height * Scale));
+
+            spriteBatch.Draw(_texture, headPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+            for (int i = 1; i <= segments * 2; i++)
+            {
+                //Vector2 segmentPosition = new Vector2(Position.X, (Position.Y - (_texture.Height + (i * _holdLengthTexture.Height * Scale))) / 2);
+
+                Vector2 segmentPosition = new Vector2(Position.X, Position.Y - ((_texture.Height * Scale) + (i * (_holdLengthTexture.Height) * Scale)) + 2 * _holdLengthTexture.Height * Scale); //works
+                spriteBatch.Draw(_holdLengthTexture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+                
+                //spriteBatch.Draw(_texture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f); //old, causes strange tearing effect on the note
+            
             }
             DrawEndTexture(spriteBatch, finalPosition);
         }
         private void DrawEndTexture(SpriteBatch spriteBatch, Vector2 finalPositon)
         {
-            Vector2 originOfTexture = new Vector2(_endTexture.Width, _endTexture.Height);
-            spriteBatch.Draw(_endTexture, finalPositon, null, Color.White, MathHelper.Pi, originOfTexture, Scale, SpriteEffects.None, 0f);
+            Vector2 originOfTexture = new Vector2(_texture.Width, _texture.Height);
+            spriteBatch.Draw(_texture, finalPositon, null, Color.White, MathHelper.Pi, originOfTexture, Scale, SpriteEffects.None, 0f);
         }
         public bool IsOffScreen(int screenHeight)
         {
