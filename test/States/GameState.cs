@@ -28,12 +28,12 @@ namespace KeyboardMania.States
         private float _noteScaleFactor;
 
         //work out an algorithm to calculate the scale
-        private float _keyScaleFactor = 1f; //2.5 home pc 1f laptop 
+        private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
         private List<Vector2> _keyPositions;
         private const int NumberOfKeys = 4;
         private float _keyWidth;
         private float _hitMargin;
-        private float _noteVelocity = 1000f; // pixels per second 2000f home pc 1000f laptop
+        private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
         private float _hitPointY; // Y position of the hit point
         private bool[] _keysPressed; // To track if a key was already pressed
         private int _comboCount = 0;
@@ -169,7 +169,27 @@ namespace KeyboardMania.States
             }
 
             MouseState mouseState = Mouse.GetState();
-
+            bool pause = false;
+            int pausedGameTime = 0;
+            KeyboardState keyboardState = Keyboard.GetState();
+            if (!pause)
+            {
+                if (keyboardState.IsKeyDown(Keys.Space))
+                {
+                    pause = true;
+                    _mp3Player.Stop();
+                pausedGameTime = gameTime.ElapsedGameTime.Milliseconds;
+                }
+            }
+            else if (keyboardState.IsKeyDown(Keys.Space))
+            {
+                pause = false;
+                _mp3Player.Play();
+            }
+            if (pause)
+            {
+                gameTime.Equals(pausedGameTime);
+            }
             //// Track the scroll wheel value
             //int scrollValue = mouseState.ScrollWheelValue;
 
@@ -483,28 +503,33 @@ namespace KeyboardMania.States
         private void DrawHoldNoteSegments(SpriteBatch spriteBatch)
         {
             int segments;
+            Vector2 segmentPosition;
             float totalHeight = Convert.ToSingle((HitObject.EndTime - HitObject.StartTime) / 1000.0) * Velocity.Y; //using speed = distance / time, distance - time * speed
-            segments = Convert.ToInt32(Math.Ceiling((totalHeight - (2 * _texture.Height) )/ (_holdLengthTexture.Height * Scale))); //2.0 version, caused error when segments < 1
+            //segments = Convert.ToInt32(Math.Ceiling((totalHeight - (2 * _texture.Height) )/ (_holdLengthTexture.Height * Scale))); //2.0 version, caused error when segments < 1 [GIVES TOO MANY]
+            segments = Convert.ToInt32(totalHeight / (_texture.Height * Scale)); //1.0 version, used for old segment position tests (remove l8r) [SEEMS TO WORK NOW]
             if (segments < 1)
             {
                 segments = 1;
             }
-            //segments = Convert.ToInt32(Math.Ceiling(totalHeight / (_texture.Height * Scale))); //1.0 version, used for old segment position tests (remove l8r)
-            //Vector2 finalPosition = new Vector2(Position.X, Position.Y - ((segments*Scale*_holdLengthTexture.Height) + _texture.Height * Scale));
-            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale)); //old finalPosition calculator, finds the final value by considering _texture.Height
-            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture.Height * Scale));
+            //Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
+
+            //BELOW LIES TROUBLE NOT FIXED HELP
+            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _holdLengthTexture.Height * Scale)- _texture.Height * Scale); //FIX THIS ASAP IAM GOING INSANE
+            //Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale)); //old finalPosition calculator, finds the final value by considering _texture.Height
+            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture.Height * Scale) + 2 * _holdLengthTexture.Height);
 
             spriteBatch.Draw(_texture, headPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
-            for (int i = 1; i <= segments * 2; i++)
+            for (int i = 2; i <= segments * 2 + 1; i++)
             {
                 //Vector2 segmentPosition = new Vector2(Position.X, (Position.Y - (_texture.Height + (i * _holdLengthTexture.Height * Scale))) / 2);
 
-                Vector2 segmentPosition = new Vector2(Position.X, Position.Y - ((_texture.Height * Scale) + (i * (_holdLengthTexture.Height) * Scale)) + 2 * _holdLengthTexture.Height * Scale); //works
-                spriteBatch.Draw(_holdLengthTexture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
-                
+                segmentPosition = new Vector2(Position.X, Position.Y - ((_texture.Height * Scale) + ((i-1) * (_holdLengthTexture.Height) * Scale)) + 3 * _holdLengthTexture.Height * Scale); //works
+                //spriteBatch.Draw(_holdLengthTexture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+
                 //spriteBatch.Draw(_texture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f); //old, causes strange tearing effect on the note
-            
             }
+            //segmentPosition = new Vector2(Position.X, Position.Y - ((_texture.Height * Scale) + ((segments + 2) * (_holdLengthTexture.Height) * Scale)) + 3 * _holdLengthTexture.Height * Scale);
+            //spriteBatch.Draw(_holdLengthTexture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
             DrawEndTexture(spriteBatch, finalPosition);
         }
         private void DrawEndTexture(SpriteBatch spriteBatch, Vector2 finalPositon)
