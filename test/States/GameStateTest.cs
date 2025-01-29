@@ -316,24 +316,30 @@ namespace KeyboardMania.States
 
             if (note.HitObject.IsHeldNote && _keysPressed[lane])
             {
+                bool failed = false;
                 double _initialInputTime = _currentTime;
                 if (keyboardState.IsKeyUp(_keyMapping[lane]))
                 {
                     _keysPressed[lane] = false;
-                    double holdDuration = _initialInputTime - note.HitObject.StartTime;
+                    double holdDuration = _initialInputTime - (note.HitObject.StartTime + note.HitObject.HoldDuration);
                     double endTimeDifference = _currentTime - (_initialInputTime + note.HitObject.HoldDuration);
 
                     if (Math.Abs(holdDuration - note.HitObject.HoldDuration) <= _hitMargin && Math.Abs(endTimeDifference) <= _hitMargin)
                     {
                         note.CompleteHold();
-                        _comboCount += (int)(Math.Abs(holdDuration / 10)); // Increment combo for every 10 ms held
+                        _comboCount += (int)(Math.Abs(holdDuration / 10)); // Increment combo for every 10 ms held (THIS SHOULD BE SET SOMEWHERE ELSE
                         return true;
                     }
                     else
                     {
+                        failed = true;
                         note.FailHold();
                         return false;
                     }
+                }
+                else
+                {
+                    _comboCount = _comboCount + 1;
                 }
             }
 
@@ -520,7 +526,6 @@ namespace KeyboardMania.States
             }
             //Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
 
-            //BELOW LINES TROUBLE NOT FIXED HELP
             Vector2 finalPosition = new Vector2(Position.X, Position.Y - (2 * segments * _holdLengthTexture.Height * Scale) - 2 * _texture.Height * Scale); //FIX THIS ASAP IAM GOING INSANE
             //Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale)); //old finalPosition calculator, finds the final value by considering _texture.Height
             Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture.Height * Scale) + 2 * _holdLengthTexture.Height * Scale);
@@ -551,8 +556,9 @@ namespace KeyboardMania.States
         }
         public bool IsHoldOffScreen(int screenHeight, Note note)
         {
-            float noteHeight = _texture.Height * Scale;
+            //USES THE SAME ALGORITHMS AS THE DRAW HOLD NOTES - TRY TO REMOVE REDUNDANCY!!
             float totalHeight = Convert.ToSingle((HitObject.EndTime - HitObject.StartTime) / 1000.0) * Velocity.Y;
+            //Vector2 finalPosition = new Vector2(Position.X, Position.Y - (2 * segments * _holdLengthTexture.Height * Scale) - 2 * _texture.Height * Scale);
             return Position.Y > screenHeight + totalHeight;
         }
     }
@@ -576,7 +582,7 @@ namespace KeyboardMania.States
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch, float keyScaleFactor)
-        {
+        { 
             spriteBatch.Draw(_texture, Position, null, Color.White, 0f, Vector2.Zero, keyScaleFactor, SpriteEffects.None, 0f);
         }
 
