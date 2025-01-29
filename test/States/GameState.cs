@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
@@ -129,7 +129,7 @@ namespace KeyboardMania.States
             int lane = x / 128;
             bool isHeldNote = endTime > startTime;
 
-            var hitObject =new HitObject
+            var hitObject = new HitObject
             {
                 Lane = lane,
                 StartTime = startTime,
@@ -137,7 +137,7 @@ namespace KeyboardMania.States
                 IsHeldNote = isHeldNote
             };
             if (isHeldNote)
-            { 
+            {
                 //ParseHoldNoteSegments(hitObject,lane); 
             }
             return hitObject;
@@ -178,7 +178,7 @@ namespace KeyboardMania.States
                 {
                     pause = true;
                     _mp3Player.Stop();
-                pausedGameTime = gameTime.ElapsedGameTime.Milliseconds;
+                    pausedGameTime = gameTime.ElapsedGameTime.Milliseconds;
                 }
             }
             else if (keyboardState.IsKeyDown(Keys.Space))
@@ -270,7 +270,7 @@ namespace KeyboardMania.States
                     else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote)
                     {
                         activeNotes.RemoveAt(i);
-                        _comboCount =0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
+                        _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
 
                     }
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note))
@@ -306,10 +306,10 @@ namespace KeyboardMania.States
                     _hitTimingsSum += timeDifference;
                     _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count;
 
-                if (note.HitObject.IsHeldNote)
-                {
+                    if (note.HitObject.IsHeldNote)
+                    {
                         note.StartHolding(_currentTime);
-                }
+                    }
                     return true;
                 }
             }
@@ -317,18 +317,18 @@ namespace KeyboardMania.States
             {
                 if (keyboardState.IsKeyUp(_keyMapping[lane]))
                 {
-                _keysPressed[lane] = false;
-            //    if(!IsHoldComplete(_currentTime, note.HitObject.EndTime, _hitMargin) )
-            //    {
-            //           note.FailHold();
-            //            return false;
-            //    }
-            //    }
-            //    if (IsHoldComplete(_currentTime, note.HitObject.EndTime, _hitMargin))
-            //    {
-            //        note.CompleteHold();
-            //        return true;
-               }
+                    _keysPressed[lane] = false;
+                    //    if(!IsHoldComplete(_currentTime, note.HitObject.EndTime, _hitMargin) )
+                    //    {
+                    //           note.FailHold();
+                    //            return false;
+                    //    }
+                    //    }
+                    //    if (IsHoldComplete(_currentTime, note.HitObject.EndTime, _hitMargin))
+                    //    {
+                    //        note.CompleteHold();
+                    //        return true;
+                }
             }
 
             return false;
@@ -348,7 +348,7 @@ namespace KeyboardMania.States
             }
             else if (currentTime < holdEndTime)
             {
-             if ((currentTime + hitMargin) >= holdEndTime)
+                if ((currentTime + hitMargin) >= holdEndTime)
                 {
                     return true;
                 }
@@ -514,7 +514,7 @@ namespace KeyboardMania.States
             //Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
 
             //BELOW LIES TROUBLE NOT FIXED HELP
-            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _holdLengthTexture.Height * Scale)- _texture.Height * Scale); //FIX THIS ASAP IAM GOING INSANE
+            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _holdLengthTexture.Height * Scale) - _texture.Height * Scale); //FIX THIS ASAP IAM GOING INSANE
             //Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale)); //old finalPosition calculator, finds the final value by considering _texture.Height
             Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture.Height * Scale) + 2 * _holdLengthTexture.Height);
 
@@ -523,7 +523,7 @@ namespace KeyboardMania.States
             {
                 //Vector2 segmentPosition = new Vector2(Position.X, (Position.Y - (_texture.Height + (i * _holdLengthTexture.Height * Scale))) / 2);
 
-                segmentPosition = new Vector2(Position.X, Position.Y - ((_texture.Height * Scale) + ((i-1) * (_holdLengthTexture.Height) * Scale)) + 3 * _holdLengthTexture.Height * Scale); //works
+                segmentPosition = new Vector2(Position.X, Position.Y - ((_texture.Height * Scale) + ((i - 1) * (_holdLengthTexture.Height) * Scale)) + 3 * _holdLengthTexture.Height * Scale); //works
                 //spriteBatch.Draw(_holdLengthTexture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
 
                 //spriteBatch.Draw(_texture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f); //old, causes strange tearing effect on the note
@@ -578,4 +578,4 @@ namespace KeyboardMania.States
             return Position.Y > screenHeight;
         }
     }
-}
+}*/
