@@ -1,4 +1,4 @@
-﻿//leave commented when not testing
+//leave commented when not testing
 using System;
 using System.Collections.Generic;
 using System.IO;
