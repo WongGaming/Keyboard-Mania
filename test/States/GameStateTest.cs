@@ -262,7 +262,6 @@ namespace KeyboardMania.States
                 {
                     var note = activeNotes[i];
                     note.Update(gameTime);
-
                     // Check if note is hit
                     if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote)
                     {
@@ -275,6 +274,10 @@ namespace KeyboardMania.States
                         activeNotes.RemoveAt(i);
                         _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
 
+                    }
+                    else if (CheckForHit(note,_hitPointY, lane) && note.HitObject.IsHeldNote && keyboardState.IsKeyUp(_keyMapping[lane]))
+                    {
+                        activeNotes.RemoveAt(i);
                     }
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note))
                     {
@@ -290,7 +293,6 @@ namespace KeyboardMania.States
         private bool CheckForHit(Note note, float hitPointY, int lane)
         {
             KeyboardState keyboardState = Keyboard.GetState();
-
             // Check if the key was just pressed
             if (keyboardState.IsKeyDown(_keyMapping[lane]) && !_keysPressed[lane])
             {
@@ -313,33 +315,34 @@ namespace KeyboardMania.States
                     return true;
                 }
             }
-
             if (note.HitObject.IsHeldNote && _keysPressed[lane])
             {
-                bool failed = false;
                 double _initialInputTime = _currentTime;
                 if (keyboardState.IsKeyUp(_keyMapping[lane]))
                 {
                     _keysPressed[lane] = false;
                     double holdDuration = _initialInputTime - (note.HitObject.StartTime + note.HitObject.HoldDuration);
-                    double endTimeDifference = _currentTime - (_initialInputTime + note.HitObject.HoldDuration);
+                    double endTimeDifference = _currentTime - (_initialInputTime + note.HitObject.HoldDuration); // change the algorithm here, compare end time difference to the first initial input time
 
                     if (Math.Abs(holdDuration - note.HitObject.HoldDuration) <= _hitMargin && Math.Abs(endTimeDifference) <= _hitMargin)
                     {
                         note.CompleteHold();
-                        _comboCount += (int)(Math.Abs(holdDuration / 10)); // Increment combo for every 10 ms held (THIS SHOULD BE SET SOMEWHERE ELSE
+                        _comboCount++; // Increment the combo count by one for hitting the note
                         return true;
                     }
                     else
                     {
-                        failed = true;
                         note.FailHold();
                         return false;
                     }
                 }
                 else
                 {
-                    _comboCount = _comboCount + 1;
+                    // Increment combo count for every 30 refreshes the note is held (this value may need to be changed if the screensize is different (velocity calculator is different)
+                    if (Convert.ToInt32(_currentTime) % 30 == 0)
+                    {
+                        _comboCount++;
+                    }
                 }
             }
 
