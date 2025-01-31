@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Input;
 using KeyboardMania.Controls;
 using Microsoft.Win32;
 using System.Reflection.Metadata;
+using System.Diagnostics.SymbolStore;
 
 namespace KeyboardMania.States
 {
@@ -275,7 +276,7 @@ namespace KeyboardMania.States
                         _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
 
                     }
-                    else if (CheckForHit(note,_hitPointY, lane) && note.HitObject.IsHeldNote && keyboardState.IsKeyUp(_keyMapping[lane]))
+                    else if (note.HitObject.IsHeldNote && _keysPressed[lane] && !note._firstPressed && keyboardState.IsKeyUp(_keyMapping[lane]) && IsLowestNoteOnScreen(note, lane))
                     {
                         activeNotes.RemoveAt(i);
                     }
@@ -308,21 +309,28 @@ namespace KeyboardMania.States
                     _hitTimingsSum += timeDifference;
                     _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count;
 
-                    if (note.HitObject.IsHeldNote)
+                   /* if (note.HitObject.IsHeldNote)
                     {
                         note.StartHolding(_currentTime);
-                    }
+                    }*/
                     return true;
                 }
             }
-            if (note.HitObject.IsHeldNote && _keysPressed[lane])
+            if (note.HitObject.IsHeldNote && _keysPressed[lane] && note._firstPressed == true)
             {
-                double _initialInputTime = _currentTime;
+                _comboCount += _comboCount;
+                note._firstPressed = false;
+                //make a new boolean - initial that checks if this is the note's first time being hit
+            if (note._currentlyHeld == false)
+            {
+                    note._currentlyHeld = true;
+                    note._holdStartTime = _currentTime;
+            }
                 if (keyboardState.IsKeyUp(_keyMapping[lane]))
                 {
                     _keysPressed[lane] = false;
-                    double holdDuration = _initialInputTime - (note.HitObject.StartTime + note.HitObject.HoldDuration);
-                    double endTimeDifference = _currentTime - (_initialInputTime + note.HitObject.HoldDuration); // change the algorithm here, compare end time difference to the first initial input time
+                    double holdDuration = note._holdStartTime - (note.HitObject.StartTime + note.HitObject.HoldDuration);
+                    double endTimeDifference = _currentTime - (note._holdStartTime + note.HitObject.HoldDuration); // change the algorithm here, compare end time difference to the first initial input time
 
                     if (Math.Abs(holdDuration - note.HitObject.HoldDuration) <= _hitMargin && Math.Abs(endTimeDifference) <= _hitMargin)
                     {
@@ -441,6 +449,18 @@ namespace KeyboardMania.States
 
             return keyPositions;
         }
+        private bool IsLowestNoteOnScreen(Note note, int lane)
+        {
+            var activeNotes = _activeNotesByLane[lane];
+            foreach (var activeNote in activeNotes)
+            {
+                if (activeNote.Position.Y < note.Position.Y)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     public class HitObject
@@ -462,8 +482,9 @@ namespace KeyboardMania.States
         public Vector2 Position;
         public Vector2 Velocity;
         private bool _isHeld;
-        private bool _currentlyHeld = false; //track if note is being hit at the moment
-        private double _holdStartTime;
+        public bool _currentlyHeld = false; //track if note is being hit at the moment
+        public double _holdStartTime;
+        public bool _firstPressed = false;
         public float Scale { get; set; } = 1f;
 
         public Note(ContentManager content, Texture2D texture, bool isHeld, string holdTexturePath = "Controls/mania-note1L") //debug sets it to default white hold length
