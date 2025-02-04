@@ -50,6 +50,8 @@ namespace KeyboardMania.States
         private float _audioLatency = 0;
         private bool _mp3Played = false;
         private int _previousScrollValue = 0; // Store the initial scroll value
+        private bool firstNotePress = false;
+        //possible fix to hold notes?
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
             : base(game, graphicsDevice, content)
         {
@@ -123,7 +125,7 @@ namespace KeyboardMania.States
                 if(overallDifficultySection && line.StartsWith("OverallDifficulty: "))
                 {
                     string[] difficultyLine = line.Split(' ');
-                    _overallDifficulty = Convert.ToInt16(difficultyLine[1]);
+                    _overallDifficulty = Convert.ToSingle(difficultyLine[1]);
                 }
                 else if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
                 {
@@ -273,36 +275,40 @@ namespace KeyboardMania.States
                 // Update active notes and check for hits (starting with the closest to the hit point)
                 for (int i = activeNotes.Count - 1; i >= 0; i--)
                 {
+                    firstNotePress = true;
                     var note = activeNotes[i];
                     note.Update(gameTime);
                     // Check if note is hit
-                    if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote)
+                    if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
                         _comboCount++; // Increase combo count, FOR SINGLE NOTES COMMENT TO CHECK IF HITS REGISTERED
                         currentNote = currentNote + 1;
+                        firstNotePress = false;
                     }
-                    else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote)
+                    else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
                         _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
                         currentNote = currentNote + 1;
+                        firstNotePress = false;
                     }
-                    else if (note.HitObject.IsHeldNote && _keysPressed[lane] && !note._firstPressed && keyboardState.IsKeyUp(_keyMapping[lane]) && IsLowestNoteOnScreen(note, lane))
+                    else if (note.HitObject.IsHeldNote && _keysPressed[lane] && !note._firstPressed && keyboardState.IsKeyUp(_keyMapping[lane]) && IsLowestNoteOnScreen(note, lane) && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
                         _comboCount += 1;
                         currentNote = currentNote + 1;
+                        firstNotePress = false;
                     }
-                    else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note))
+                    else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note) && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
                         _comboCount = 0; // Reset combo count, IF HOLD NOTE IS MISSED (OFFSCREEN) (THIS ONLY CHECKS IF THE END PASSES THE FRONT (CURRENTLY IGNORES THE FRONT)
                         currentNote = currentNote + 1;
+                        firstNotePress = false;
+                    }
                     }
                 }
-            }
-
             HandleKeyReleases(); // Handle key releases for feedback
         }
 
