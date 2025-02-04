@@ -40,9 +40,10 @@ namespace KeyboardMania.States
         private bool[] _keysPressed; // To track if a key was already pressed
         private int _comboCount = 0;
         private Dictionary<int, Keys> _keyMapping; // Map lanes to keys
-
-        // Track hit timings to adjust input lag
+        private float _overallDifficulty;
+        //adjusts the actual difficulty of hitmargins
         private List<double> _hitTimings = new List<double>();
+        // Track hit timings to adjust input lag
         private double _hitTimingsSum = 0;
         private double _hitTimingsAverage = 0;
         private double _latencyRemover = 222.92825; // Enter the average latency experienced
@@ -103,17 +104,28 @@ namespace KeyboardMania.States
         private void LoadBeatmap(string _osuFilePath)
         {
             string[] lines = File.ReadAllLines(_osuFilePath);
+            bool overallDifficultySection = false;
             bool hitObjectSection = false;
-
+            
             foreach (string line in lines)
             {
+                if (line.StartsWith("[Difficulty]"))
+                {
+                    overallDifficultySection = true;
+                    continue;
+                }
                 if (line.StartsWith("[HitObjects]"))
                 {
                     hitObjectSection = true;
+                    overallDifficultySection = false;
                     continue;
                 }
-
-                if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
+                if(overallDifficultySection && line.StartsWith("OverallDifficulty: "))
+                {
+                    string[] difficultyLine = line.Split(' ');
+                    _overallDifficulty = Convert.ToInt16(difficultyLine[1]);
+                }
+                else if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
                 {
                     var hitObject = ParseHitObject(line);
                     _hitObjectsByLane[hitObject.Lane].Add(hitObject);
@@ -257,7 +269,7 @@ namespace KeyboardMania.States
                         hitObjects.RemoveAt(i); // Remove the note from the hitObjects list once it has spawned
                     }
                 }
-
+                int currentNote = 0;
                 // Update active notes and check for hits (starting with the closest to the hit point)
                 for (int i = activeNotes.Count - 1; i >= 0; i--)
                 {
@@ -268,22 +280,25 @@ namespace KeyboardMania.States
                     {
                         activeNotes.RemoveAt(i);
                         _comboCount++; // Increase combo count, FOR SINGLE NOTES COMMENT TO CHECK IF HITS REGISTERED
-
+                        currentNote = currentNote + 1;
                     }
                     else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote)
                     {
                         activeNotes.RemoveAt(i);
                         _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
-
+                        currentNote = currentNote + 1;
                     }
                     else if (note.HitObject.IsHeldNote && _keysPressed[lane] && !note._firstPressed && keyboardState.IsKeyUp(_keyMapping[lane]) && IsLowestNoteOnScreen(note, lane))
                     {
                         activeNotes.RemoveAt(i);
+                        _comboCount += 1;
+                        currentNote = currentNote + 1;
                     }
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note))
                     {
                         activeNotes.RemoveAt(i);
                         _comboCount = 0; // Reset combo count, IF HOLD NOTE IS MISSED (OFFSCREEN) (THIS ONLY CHECKS IF THE END PASSES THE FRONT (CURRENTLY IGNORES THE FRONT)
+                        currentNote = currentNote + 1;
                     }
                 }
             }
@@ -318,7 +333,7 @@ namespace KeyboardMania.States
             }
             if (note.HitObject.IsHeldNote && _keysPressed[lane] && note._firstPressed == true)
             {
-                _comboCount += _comboCount;
+                _comboCount += 1;
                 note._firstPressed = false;
                 //make a new boolean - initial that checks if this is the note's first time being hit
             if (note._currentlyHeld == false)
@@ -344,14 +359,17 @@ namespace KeyboardMania.States
                         return false;
                     }
                 }
-                else
+                /*else
                 {
                     // Increment combo count for every 30 refreshes the note is held (this value may need to be changed if the screensize is different (velocity calculator is different)
                     if (Convert.ToInt32(_currentTime) % 30 == 0)
                     {
                         _comboCount++;
                     }
-                }
+
+                }*/
+                
+                //the above code was to count the combo per every tick. this will change to be counting one hit + one release due to player feedback
             }
 
             return false;
@@ -454,7 +472,7 @@ namespace KeyboardMania.States
             var activeNotes = _activeNotesByLane[lane];
             foreach (var activeNote in activeNotes)
             {
-                if (activeNote.Position.Y < note.Position.Y)
+                if (!activeNote.HitObject.IsHeldNote && activeNote.Position.Y < note.Position.Y)
                 {
                     return false;
                 }
@@ -484,7 +502,7 @@ namespace KeyboardMania.States
         private bool _isHeld;
         public bool _currentlyHeld = false; //track if note is being hit at the moment
         public double _holdStartTime;
-        public bool _firstPressed = false;
+        public bool _firstPressed = true;
         public float Scale { get; set; } = 1f;
 
         public Note(ContentManager content, Texture2D texture, bool isHeld, string holdTexturePath = "Controls/mania-note1L") //debug sets it to default white hold length
@@ -511,7 +529,7 @@ namespace KeyboardMania.States
         public void CompleteHold()
         {
             _isHeld = false;
-            Console.WriteLine("Hold note completed!");
+            Console.WriteLine("Hold note successful!");
         }
 
         public override void Update(GameTime gameTime)
