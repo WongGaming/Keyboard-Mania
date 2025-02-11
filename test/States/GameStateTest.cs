@@ -21,6 +21,13 @@ namespace KeyboardMania.States
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
         private Texture2D _keyTexture;
         private Texture2D _noteTexture;
+        //prepare the textures for loading, CHANGE THIS INTO SETTINGS LATER
+        private Texture2D maniaHit0;
+        private Texture2D maniaHit50;
+        private Texture2D maniaHit100;
+        private Texture2D maniaHit200;
+        private Texture2D maniaHit300;
+        private Texture2D maniaHitMax;
         private Texture2D _holdHeadTexture;
         //private Texture2D _holdLengthTexture; possibly obsolete
         private Texture2D _hitFeedbackTexture;
@@ -34,7 +41,12 @@ namespace KeyboardMania.States
         private List<Vector2> _keyPositions;
         private const int NumberOfKeys = 4;
         private float _keyWidth;
-        private float _hitMargin;
+
+        private float _missMargin;
+        //The range that the player can hit the notes, if the player hits within this range but not the other range, the note is counted as a miss (allows ghost tapping)
+        private Dictionary<String,float> _scoreMargins = new Dictionary<String, float>();
+
+        //REPLACE EVERYTHING ABOUT HIT MARGIN WITH _SCORE MARGIN
         private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
         private float _hitPointY; // Y position of the hit point
         private bool[] _keysPressed; // To track if a key was already pressed
@@ -98,7 +110,7 @@ namespace KeyboardMania.States
                 _activeNotesByLane[i] = new List<Note>();
             }
 
-            _hitMargin = 2000f; // Example hit margin, adjust as needed
+            _missMargin = 2000f; // Example hit margin, adjust as needed, SHIFT TOWARDS THE SCORE MARGINS
 
             LoadBeatmap(_osuFilePath);
         }
@@ -126,6 +138,8 @@ namespace KeyboardMania.States
                 {
                     string[] difficultyLine = line.Split(' ');
                     _overallDifficulty = Convert.ToSingle(difficultyLine[1]);
+                 ParseScoreMargins(_scoreMargins, _overallDifficulty);
+                    overallDifficultySection = false;
                 }
                 else if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
                 {
@@ -134,7 +148,14 @@ namespace KeyboardMania.States
                 }
             }
         }
-
+        private void ParseScoreMargins(Dictionary<string, float> scoreMargins, float overallDifficulty)
+        {
+            scoreMargins.Add("MAX", 16);
+            scoreMargins.Add("300", 64 -  3*overallDifficulty);
+            scoreMargins.Add("200", 97 - 3 * overallDifficulty);
+            scoreMargins.Add("100", 127 - 3 * overallDifficulty);
+            scoreMargins.Add("50", 151 - 3 * overallDifficulty);
+        }
         private HitObject ParseHitObject(string line)
         {
             var parts = line.Split(',');
@@ -323,7 +344,7 @@ namespace KeyboardMania.States
                 double timeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover; // Adjusted for latency
 
                 // Check if within hit margin based only on time
-                if (Math.Abs(timeDifference) <= _hitMargin)
+                if (Math.Abs(timeDifference) <= _missMargin)
                 {
                     // Hit registered (mainly for debugging)
                     _hitTimings.Add(timeDifference);
@@ -353,7 +374,7 @@ namespace KeyboardMania.States
                     double holdDuration = note._holdStartTime - (note.HitObject.StartTime + note.HitObject.HoldDuration);
                     double endTimeDifference = _currentTime - (note._holdStartTime + note.HitObject.HoldDuration); // change the algorithm here, compare end time difference to the first initial input time
 
-                    if (Math.Abs(holdDuration - note.HitObject.HoldDuration) <= _hitMargin && Math.Abs(endTimeDifference) <= _hitMargin)
+                    if (Math.Abs(holdDuration - note.HitObject.HoldDuration) <= _missMargin && Math.Abs(endTimeDifference) <= _missMargin)
                     {
                         note.CompleteHold();
                         _comboCount++; // Increment the combo count by one for hitting the note
