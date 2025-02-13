@@ -26,7 +26,7 @@ namespace KeyboardMania.States
                 Text = "Play",
             };
 
-            //generateBeatmapButton.Click += GenerateBeatmapButton_Click;
+            generateBeatmapButton.Click += GenerateBeatmapButton_Click;
 
             var manualEditButton = new Button(buttonTexture, buttonFont)
             {
@@ -34,27 +34,44 @@ namespace KeyboardMania.States
                 Text = "Beatmap Editor",
             };
 
-            //manualEditButton.Click += ManualEditButton_Click;
+            manualEditButton.Click += ManualEditButton_Click;
 
-            var backButton = new Button(buttonTexture, buttonFont)
+            var returnButton = new Button(buttonTexture, buttonFont)
             {
                 Position = new Vector2(300, 300),
-                Text = "Back",
+                Text = "Return",
             };
 
-            //backButton.Click += BackButton_Click;
+            returnButton.Click += ReturnButton_Click;
 
             _components = new List<Component>()
-      {
-        generateBeatmapButton,
-        manualEditButton,
-        backButton,
-      };
+            {
+            generateBeatmapButton,
+            manualEditButton,
+            returnButton,
+            };
         }
-
-        public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        private void GenerateBeatmapButton_Click(object sender, EventArgs e)
         {
 
+        }
+        private void ManualEditButton_Click(object sender, EventArgs e)
+        {
+
+        }
+        private void ReturnButton_Click(object sender, EventArgs e)
+        {
+            _game.ChangeState(new MenuState(_game, _graphicsDevice, _content));
+        }
+        public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        {
+            spriteBatch.Begin();
+            foreach (var component in _components)
+            {
+                component.Draw(gameTime, spriteBatch);
+            }
+
+            spriteBatch.End();
         }
 
         public override void PostUpdate(GameTime gameTime)

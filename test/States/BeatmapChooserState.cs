@@ -18,7 +18,7 @@ namespace KeyboardMania.States
 {
     internal class BeatmapChooserState : State
     {
-        private string _rootDirectory; //Beatmaps folder, stored in the Content folder.
+        private string _rootDirectory;
         private List<string> _folders;
         private int _selectedItem; //currently selected folder
         private SpriteFont _font;
