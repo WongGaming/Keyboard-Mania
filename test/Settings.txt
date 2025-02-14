@@ -1,0 +1,5 @@
+[Skin Settings]
+
+[Display Settings]
+
+[Gameplay Settings]
