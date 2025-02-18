@@ -8,7 +8,7 @@ using KeyboardMania.Controls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using test.States;
+using KeyboardMania.States;
 
 namespace KeyboardMania.States
 {
@@ -16,8 +16,7 @@ namespace KeyboardMania.States
   {
         private List<Component> _components;
         private Texture2D _logo;
-        public OptionsMenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content) 
-      : base(game, graphicsDevice, content)
+        public OptionsMenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content) : base(game, graphicsDevice, content)
     {
             _logo = _content.Load<Texture2D>("Textures/blacklogo");
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");

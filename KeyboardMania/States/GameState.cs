@@ -1,4 +1,4 @@
-//leave commented when not testing
+﻿//leave commented when not testing
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,7 +44,7 @@ namespace KeyboardMania.States
 
         private float _missMargin;
         //The range that the player can hit the notes, if the player hits within this range but not the other range, the note is counted as a miss (allows ghost tapping)
-        private Dictionary<String,float> _scoreMargins = new Dictionary<String, float>();
+        private Dictionary<String, float> _scoreMargins = new Dictionary<String, float>();
 
         //REPLACE EVERYTHING ABOUT HIT MARGIN WITH _SCORE MARGIN
         private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
@@ -76,9 +76,9 @@ namespace KeyboardMania.States
             _screenWidth = graphicsDevice.Viewport.Width;
             _screenHeight = graphicsDevice.Viewport.Height;
 
-            //below filepaths are for bugtesting, uncomment them to test the game with specific files
-            //_osuFilePath = @"C:\Users\kong3\source\repos\Keyboard-Mania\test\Beatmaps\M2U - Mare Maris\M2U - Mare Maris (Raveille) [EXPERT].osu";
-            //_mp3FilePath = @"C:\Users\kong3\source\repos\Keyboard-Mania\test\Beatmaps\M2U - Mare Maris\maremaris.mp3";
+            //below filepaths are for bugtesting, uncomment them to KeyboardMania the game with specific files
+            //_osuFilePath = @"C:\Users\kong3\source\repos\Keyboard-Mania\KeyboardMania\Beatmaps\M2U - Mare Maris\M2U - Mare Maris (Raveille) [EXPERT].osu";
+            //_mp3FilePath = @"C:\Users\kong3\source\repos\Keyboard-Mania\KeyboardMania\Beatmaps\M2U - Mare Maris\maremaris.mp3";
             _mp3Player = new Mp3Player(_mp3FilePath);
 
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;
@@ -120,7 +120,7 @@ namespace KeyboardMania.States
             string[] lines = File.ReadAllLines(_osuFilePath);
             bool overallDifficultySection = false;
             bool hitObjectSection = false;
-            
+
             foreach (string line in lines)
             {
                 if (line.StartsWith("[Difficulty]"))
@@ -134,11 +134,11 @@ namespace KeyboardMania.States
                     overallDifficultySection = false;
                     continue;
                 }
-                if(overallDifficultySection && line.StartsWith("OverallDifficulty: "))
+                if (overallDifficultySection && line.StartsWith("OverallDifficulty: "))
                 {
                     string[] difficultyLine = line.Split(' ');
                     _overallDifficulty = Convert.ToSingle(difficultyLine[1]);
-                 ParseScoreMargins(_scoreMargins, _overallDifficulty);
+                    ParseScoreMargins(_scoreMargins, _overallDifficulty);
                     overallDifficultySection = false;
                 }
                 else if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
@@ -151,7 +151,7 @@ namespace KeyboardMania.States
         private void ParseScoreMargins(Dictionary<string, float> scoreMargins, float overallDifficulty)
         {
             scoreMargins.Add("MAX", 16);
-            scoreMargins.Add("300", 64 -  3*overallDifficulty);
+            scoreMargins.Add("300", 64 - 3 * overallDifficulty);
             scoreMargins.Add("200", 97 - 3 * overallDifficulty);
             scoreMargins.Add("100", 127 - 3 * overallDifficulty);
             scoreMargins.Add("50", 151 - 3 * overallDifficulty);
@@ -328,8 +328,8 @@ namespace KeyboardMania.States
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                     }
-                    }
                 }
+            }
             HandleKeyReleases(); // Handle key releases for feedback
         }
 
@@ -351,10 +351,10 @@ namespace KeyboardMania.States
                     _hitTimingsSum += timeDifference;
                     _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count;
 
-                   /* if (note.HitObject.IsHeldNote)
-                    {
-                        note.StartHolding(_currentTime);
-                    }*/
+                    /* if (note.HitObject.IsHeldNote)
+                     {
+                         note.StartHolding(_currentTime);
+                     }*/
                     return true;
                 }
             }
@@ -363,11 +363,11 @@ namespace KeyboardMania.States
                 _comboCount += 1;
                 note._firstPressed = false;
                 //make a new boolean - initial that checks if this is the note's first time being hit
-            if (note._currentlyHeld == false)
-            {
+                if (note._currentlyHeld == false)
+                {
                     note._currentlyHeld = true;
                     note._holdStartTime = _currentTime;
-            }
+                }
                 if (keyboardState.IsKeyUp(_keyMapping[lane]))
                 {
                     _keysPressed[lane] = false;
@@ -395,7 +395,7 @@ namespace KeyboardMania.States
                     }
 
                 }*/
-                
+
                 //the above code was to count the combo per every tick. this will change to be counting one hit + one release due to player feedback
             }
 
@@ -651,7 +651,7 @@ namespace KeyboardMania.States
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch, float keyScaleFactor)
-        { 
+        {
             spriteBatch.Draw(_texture, Position, null, Color.White, 0f, Vector2.Zero, keyScaleFactor, SpriteEffects.None, 0f);
         }
 

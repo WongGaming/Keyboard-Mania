@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace keyboard!mania_UI.States
+namespace KeyboardMania.States
 {
-    internal class State
-{
-}
+    internal class ParseOptionsState
+    {
+    }
 }

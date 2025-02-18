@@ -11,10 +11,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Input;
 
-namespace test.States
+namespace KeyboardMania.States
 {
     internal class SkinsChooserState : State
     {
+        private Texture2D _noteTexture;
+        private float _keyWidth;
+        private Texture2D _keyTexture;
         private string _rootDirectory;
         private List<Texture2D> _startNoteTexture = new List<Texture2D>();
         private const int NumberOfKeys = 4;
@@ -22,6 +25,17 @@ namespace test.States
         private int _screenWidth;
         private List<HitFeedback> _hitFeedbacks;
         private int _screenHeight;
+        private float _noteVelocity = 2000f;
+        private float _keyScaleFactor = 1.0f; // Added _keyScaleFactor
+        private float _noteScaleFactor;
+        private Dictionary<int, List<HitObject>> _hitObjectsByLane = new Dictionary<int, List<HitObject>>();
+        private Dictionary<int, List<Note>> _activeNotesByLane = new Dictionary<int, List<Note>>(); // Added _activeNotesByLane
+        private bool[] _keysPressed = new bool[NumberOfKeys];
+        private Keys[] _keyMapping = { Keys.D, Keys.F, Keys.J, Keys.K }; // Added _keyMapping
+        private List<Vector2> _keyPositions; // Added _keyPositions
+        private int _comboCount = 0; // Added _comboCount
+        private float _hitPointY = 0f; // Added _hitPointY
+        private double _currentTime = 0; // Added _currentTime
 
         public SkinsChooserState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
         : base(game, graphicsDevice, content)
@@ -31,13 +45,13 @@ namespace test.States
             _screenHeight = graphicsDevice.Viewport.Height;
             _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
             string[] settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
-            ParseCurrentSettings(settingsFilePath[0],_rootDirectory);
+            ParseCurrentSettings(settingsFilePath[0], _rootDirectory);
             _hitFeedbacks = new List<HitFeedback>();
-            /* _lnoteTexture = _content.Load<Texture2D>("Textures/lnote");
-             _mlnoteTexture = _content.Load<Texture2D>("Textures/mlnote");
-             _mrnoteTexture = _content.Load<Texture2D>("Textures/mrnote");
-             _rnoteTexture = _content.Load<Texture2D>("Textures/rnote");*/
+            _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
+            _keyPositions = CalculateKeyPositions(NumberOfKeys, _keyWidth, _screenHeight - 100); // Initialize _keyPositions
+            _noteScaleFactor = 100f * _keyScaleFactor / 256f;
         }
+
         private void ParseCurrentSettings(string _settingsFilePath, string rootDirectory)
         {
             string defaultSkinLocation = Path.GetFullPath(Path.Combine(_rootDirectory, "Content", "Skins", "NoteTextures", "WhiteNote"));
@@ -70,6 +84,7 @@ namespace test.States
 
             }
         }
+
         private void HandleKeyReleases()
         {
             KeyboardState keyboardState = Keyboard.GetState();
@@ -84,6 +99,7 @@ namespace test.States
                 }
             }
         }
+
         private List<Vector2> CalculateKeyPositions(int numberOfKeys, float keyWidth, float bottomPositionY)
         {
             var keyPositions = new List<Vector2>();
@@ -98,6 +114,7 @@ namespace test.States
 
             return keyPositions;
         }
+
         public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             _graphicsDevice.Clear(Color.Black);
@@ -142,6 +159,8 @@ namespace test.States
 
         public override void Update(GameTime gameTime)
         {
+            _currentTime = gameTime.TotalGameTime.TotalMilliseconds; // Update _currentTime
+
             for (int i = _hitFeedbacks.Count - 1; i >= 0; i--)
             {
                 _hitFeedbacks[i].Update(gameTime);
@@ -180,10 +199,10 @@ namespace test.States
                     }
                 }
                 int currentNote = 0;
-                // Update active notes and check for hits (starting with the closest to the hit point)
+                bool firstNotePress = true; // Added firstNotePress
+                                            // Update active notes and check for hits (starting with the closest to the hit point)
                 for (int i = activeNotes.Count - 1; i >= 0; i--)
                 {
-                    firstNotePress = true;
                     var note = activeNotes[i];
                     note.Update(gameTime);
                     // Check if note is hit
@@ -204,6 +223,12 @@ namespace test.States
                 }
             }
             HandleKeyReleases();
+        }
+
+        private bool CheckForHit(Note note, float hitPointY, int lane)
+        {
+            // Implement the logic to check if the note is hit
+            return false;
         }
     }
 }
