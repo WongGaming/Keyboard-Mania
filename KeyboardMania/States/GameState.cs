@@ -68,7 +68,9 @@ namespace KeyboardMania.States
             : base(game, graphicsDevice, content)
         {
             //don't delete these like before!!
-            _noteTexture = _content.Load<Texture2D>("Controls/mania-note1");
+            //_noteTexture = _content.Load<Texture2D>("Controls/mania-note1"); //OLD, THIS IS FOR PRE SKINS
+            _noteTexture = _content.Load<Texture2D>("Skins/NoteTextures/WhiteNote/mania-note1");
+
             _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
             _holdHeadTexture = _content.Load<Texture2D>("Controls/mania-note1H");
             //_holdLengthTexture = _content.Load<Texture2D>("Controls/mania-note1L");

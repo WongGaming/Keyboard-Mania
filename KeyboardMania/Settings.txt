@@ -1,5 +1,7 @@
 [Skin Settings]
-
+WhiteNote
+WhiteNote
+WhiteNote
+WhiteNote
 [Display Settings]
-
 [Gameplay Settings]

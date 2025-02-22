@@ -45,44 +45,12 @@ namespace KeyboardMania.States
             _screenHeight = graphicsDevice.Viewport.Height;
             _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
             string[] settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
-            ParseCurrentSettings(settingsFilePath[0], _rootDirectory);
+            var parseSkinSettings = new ParseSkinSettings(_content);
+            parseSkinSettings.ParseCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _startNoteTexture);
             _hitFeedbacks = new List<HitFeedback>();
             _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
             _keyPositions = CalculateKeyPositions(NumberOfKeys, _keyWidth, _screenHeight - 100); // Initialize _keyPositions
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;
-        }
-
-        private void ParseCurrentSettings(string _settingsFilePath, string rootDirectory)
-        {
-            string defaultSkinLocation = Path.GetFullPath(Path.Combine(_rootDirectory, "Content", "Skins", "NoteTextures", "WhiteNote"));
-            string[] lines = File.ReadAllLines(_settingsFilePath);
-            bool skinSettingsSection = false;
-            List<string> noteTexture = new List<string>();
-            foreach (string line in lines)
-            {
-                if (line.StartsWith("[Skin Settings]"))
-                {
-                    skinSettingsSection = true;
-                    continue;
-                }
-
-                if (skinSettingsSection)
-                {
-                    for (int i = 0; i < 3; i++)
-                    {
-                        if (!line.StartsWith(""))
-                        {
-                            _startNoteTexture.Add(_content.Load<Texture2D>(line));
-                        }
-                        else
-                        {
-                            _startNoteTexture.Add(_content.Load<Texture2D>("Skins/NoteTextures/WhiteNote/mania-note1"));
-                        }
-                    }
-                    skinSettingsSection = false;
-                }
-
-            }
         }
 
         private void HandleKeyReleases()
