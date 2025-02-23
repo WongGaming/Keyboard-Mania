@@ -19,23 +19,24 @@ namespace KeyboardMania.States
         private float _keyWidth;
         private Texture2D _keyTexture;
         private string _rootDirectory;
-        private List<Texture2D> _startNoteTexture = new List<Texture2D>();
+        private List<Texture2D> _noteTextures = new List<Texture2D>();
+        private List<Texture2D> _holdNoteTextures = new List<Texture2D>();
+        private List<Texture2D> _lengthNoteTextures = new List<Texture2D>();
         private const int NumberOfKeys = 4;
         private Texture2D _hitFeedbackTexture;
         private int _screenWidth;
         private List<HitFeedback> _hitFeedbacks;
         private int _screenHeight;
         private float _noteVelocity = 2000f;
-        private float _keyScaleFactor = 1.0f; // Added _keyScaleFactor
+        private float _keyScaleFactor = 1.0f;
         private float _noteScaleFactor;
         private Dictionary<int, List<HitObject>> _hitObjectsByLane = new Dictionary<int, List<HitObject>>();
-        private Dictionary<int, List<Note>> _activeNotesByLane = new Dictionary<int, List<Note>>(); // Added _activeNotesByLane
+        private Dictionary<int, List<Note>> _activeNotesByLane = new Dictionary<int, List<Note>>();
         private bool[] _keysPressed = new bool[NumberOfKeys];
-        private Keys[] _keyMapping = { Keys.D, Keys.F, Keys.J, Keys.K }; // Added _keyMapping
-        private List<Vector2> _keyPositions; // Added _keyPositions
-        private int _comboCount = 0; // Added _comboCount
-        private float _hitPointY = 0f; // Added _hitPointY
-        private double _currentTime = 0; // Added _currentTime
+        private Keys[] _keyMapping = { Keys.D, Keys.F, Keys.J, Keys.K };
+        private List<Vector2> _keyPositions;
+        private float _hitPointY = 0f;
+        private double _currentTime = 0;
 
         public SkinsChooserState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
         : base(game, graphicsDevice, content)
@@ -46,7 +47,7 @@ namespace KeyboardMania.States
             _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
             string[] settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
             var parseSkinSettings = new ParseSkinSettings(_content);
-            parseSkinSettings.ParseCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _startNoteTexture);
+            parseSkinSettings.ParseCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _noteTextures, _holdNoteTextures, _lengthNoteTextures);
             _hitFeedbacks = new List<HitFeedback>();
             _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
             _keyPositions = CalculateKeyPositions(NumberOfKeys, _keyWidth, _screenHeight - 100); // Initialize _keyPositions
@@ -87,7 +88,6 @@ namespace KeyboardMania.States
         {
             _graphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
-            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_comboCount), new Vector2(100, 1000), Color.Red); //bugtesting combo counter Vector2(x, 2000) for home pc, Vector2(x,1000) for laptop
 
             foreach (var laneNotes in _activeNotesByLane.Values)
             {
@@ -177,14 +177,12 @@ namespace KeyboardMania.States
                     if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
-                        _comboCount++; // Increase combo count, FOR SINGLE NOTES COMMENT TO CHECK IF HITS REGISTERED
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                     }
                     else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
-                        _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                     }

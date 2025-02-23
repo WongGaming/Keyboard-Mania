@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace KeyboardMania
 {
@@ -35,6 +36,19 @@ namespace KeyboardMania
 
             string fullSettingsContent = skinSettingsContent + displaySettingsContent + gameplaySettingsContent;
             File.WriteAllText(settingsFilePath, fullSettingsContent);
+        }
+        public void InitialiseSkin(string settingsFilePath)
+        {
+            string skinSettingsContent;
+            skinSettingsContent = "[Skin Settings]\n";
+            skinSettingsContent += "WhiteNote\n";
+            skinSettingsContent += "WhiteNote\n";
+            skinSettingsContent += "WhiteNote\n";
+            skinSettingsContent += "WhiteNote\n";
+
+            string CurrentFileContent = File.ReadAllText(settingsFilePath);
+            CurrentFileContent = Regex.Replace(CurrentFileContent, @"\[Skin Settings\][\s\S]*?\[Display Settings\]", skinSettingsContent + "[Display Settings]");
+            File.WriteAllText(settingsFilePath, CurrentFileContent);
         }
     }
 }

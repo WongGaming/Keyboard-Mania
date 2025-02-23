@@ -13,9 +13,6 @@ namespace KeyboardMania
 {
     internal class ParseSkinSettings
     {
-        private List<Texture2D> _noteTextures = new List<Texture2D>();
-        private List<Texture2D> _holdNoteTextures = new List<Texture2D>();
-        private List<Texture2D> _lengthNoteTextures = new List<Texture2D>();
         private ContentManager _content;
 
         public ParseSkinSettings(ContentManager content)
@@ -23,71 +20,76 @@ namespace KeyboardMania
             _content = content;
         }
 
-        public void ParseCurrentSettings(string settingsFilePath, string rootDirectory, ContentManager content, List<Texture2D> NoteTextures)
+        public void ParseCurrentSettings(string settingsFilePath, string rootDirectory, ContentManager content, List<Texture2D> _noteTextures, List<Texture2D> _holdNoteTextures, List<Texture2D> _lengthNoteTextures)
         {
             string skinFoldersLocation = Path.GetFullPath(Path.Combine(rootDirectory, "Content", "Skins", "NoteTextures"));
             string[] lines = File.ReadAllLines(settingsFilePath);
             bool skinSettingsSection = false;
             bool fullyParsed = false;
-            foreach (string line in lines)
+            do
             {
-                if (line.StartsWith("[Skin Settings]"))
-                {
-                    skinSettingsSection = true;
-                    continue;
-                }
 
-                if (skinSettingsSection)
+                foreach (string line in lines)
                 {
-                    do
+                    if (line.StartsWith("[Skin Settings]"))
                     {
-                        for (int i = 0; i < 3; i++)
+                        skinSettingsSection = true;
+                    }
+
+                    if (skinSettingsSection)
+                    {
+                        string directoryPath = Path.Combine(skinFoldersLocation, line);
+                        if (!string.IsNullOrWhiteSpace(line) && Directory.Exists(directoryPath))
                         {
-                            if (!string.IsNullOrWhiteSpace(line))
+                            string[] files = Directory.GetFiles(directoryPath, "*.png");
+                            bool validFilesFound = false;
+
+                            foreach (string file in files)
                             {
-                                string directoryPath = Path.Combine(skinFoldersLocation, line);
-                                if (Directory.Exists(directoryPath))
+                                string relativePath = Path.GetRelativePath(rootDirectory, file);
+                                relativePath = relativePath.Replace("\\", "/");
+                                relativePath = relativePath.Remove(relativePath.Length - 4);
+                                relativePath = Path.Combine("..", relativePath);
+
+                                if (Regex.IsMatch(file, @"^.*L\.png", RegexOptions.IgnoreCase))
                                 {
-                                    string[] files = Directory.GetFiles(directoryPath, "*.png");
-                                    foreach (string file in files)
-                                    {
-                                        string relativePath = Path.GetRelativePath(rootDirectory, file);
-                                        relativePath = relativePath.Replace("\\", "/");
-                                        relativePath = relativePath.Remove(relativePath.Length - 4);
-                                        relativePath = Path.Combine("..", relativePath);
-
-                                        if (Regex.IsMatch(file, @"^.*L\.png", RegexOptions.IgnoreCase))
-                                        {
-                                            _lengthNoteTextures.Add(_content.Load<Texture2D>(relativePath));
-                                        }
-                                        else if (Regex.IsMatch(file, @"^.*H\.png", RegexOptions.IgnoreCase))
-                                        {
-                                            _holdNoteTextures.Add(_content.Load<Texture2D>(relativePath));
-                                        }
-                                        else if (Regex.IsMatch(file, @"^.*\.png", RegexOptions.IgnoreCase))
-                                        {
-                                            _noteTextures.Add(_content.Load<Texture2D>(relativePath));
-                                        }
-
-                                    }
+                                    _lengthNoteTextures.Add(_content.Load<Texture2D>(relativePath));
+                                    validFilesFound = true;
                                 }
-                                if (i == 3)
+                                else if (Regex.IsMatch(file, @"^.*H\.png", RegexOptions.IgnoreCase))
                                 {
-                                    fullyParsed = true;
+                                    _holdNoteTextures.Add(_content.Load<Texture2D>(relativePath));
+                                    validFilesFound = true;
+                                }
+                                else if (Regex.IsMatch(file, @"^.*\.png", RegexOptions.IgnoreCase))
+                                {
+                                    _noteTextures.Add(_content.Load<Texture2D>(relativePath));
+                                    validFilesFound = true;
+                                }
+                                if (!validFilesFound)
+                                {
+                                    InstantiateSettings instantiateSettings = new InstantiateSettings();
+                                    instantiateSettings.InitialiseSkin(settingsFilePath);
                                 }
                             }
-                            else
+                            if (_noteTextures.Count == 4)
                             {
-                                InstantiateSettings instantiateSettings = new InstantiateSettings();
-                                instantiateSettings.InitialiseSettings(settingsFilePath);
-                                i = 4;
+                                fullyParsed = true;
+
                             }
                         }
+                        else
+                        {
+                            InstantiateSettings instantiateSettings = new InstantiateSettings();
+                            instantiateSettings.InitialiseSkin(settingsFilePath);
+                            _lengthNoteTextures.Clear();
+                            _holdNoteTextures.Clear();
+                            _noteTextures.Clear();
+                            lines = File.ReadAllLines(settingsFilePath);
+                        }
                     }
-                    while (!fullyParsed);
-                    skinSettingsSection = false;
-                }
-            }
+                    }
+            } while (!fullyParsed) ;
         }
     }
 }   
