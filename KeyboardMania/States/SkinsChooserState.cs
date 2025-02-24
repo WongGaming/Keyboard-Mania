@@ -106,7 +106,6 @@ namespace KeyboardMania.States
                 }
             }
 
-            // Draw hit feedbacks first so that keys are rendered above them
             foreach (var feedback in _hitFeedbacks)
             {
                 feedback.Draw(gameTime, spriteBatch, _keyScaleFactor);
@@ -146,7 +145,6 @@ namespace KeyboardMania.States
                 // Sort active notes by their Y-position (lower notes first)
                 activeNotes.Sort((n1, n2) => n1.Position.Y.CompareTo(n2.Position.Y));
 
-                // Generate new notes
                 for (int i = hitObjects.Count - 1; i >= 0; i--)
                 {
                     var hitObject = hitObjects[i];
