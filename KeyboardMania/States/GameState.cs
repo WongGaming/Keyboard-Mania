@@ -20,7 +20,9 @@ namespace KeyboardMania.States
         private Dictionary<int, List<Note>> _activeNotesByLane;
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
         private Texture2D _keyTexture;
-        private Texture2D _noteTexture;
+        private List<Texture2D> _noteTexture = new List<Texture2D>();
+        private List<Texture2D> _holdTexture = new List<Texture2D>();
+        private List<Texture2D> _lengthTexture = new List<Texture2D>();
         //prepare the textures for loading, CHANGE THIS INTO SETTINGS LATER
         private Texture2D maniaHit0;
         private Texture2D maniaHit50;
@@ -28,24 +30,23 @@ namespace KeyboardMania.States
         private Texture2D maniaHit200;
         private Texture2D maniaHit300;
         private Texture2D maniaHitMax;
-        private Texture2D _holdHeadTexture;
         //private Texture2D _holdLengthTexture; possibly obsolete
         private Texture2D _hitFeedbackTexture;
         private double _currentTime;
         private int _screenWidth;
         private int _screenHeight;
         private float _noteScaleFactor;
-
+        private string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
         //work out an algorithm to calculate the scale
         private float _keyScaleFactor = 1f; //2.5 home pc 1f laptop 
         private List<Vector2> _keyPositions;
         private const int NumberOfKeys = 4;
         private float _keyWidth;
-
+        private List<string> _currentTextures = new List<string>();
         private float _missMargin;
         //The range that the player can hit the notes, if the player hits within this range but not the other range, the note is counted as a miss (allows ghost tapping)
         private Dictionary<String, float> _scoreMargins = new Dictionary<String, float>();
-
+        private string[] settingsFilePath;
         //REPLACE EVERYTHING ABOUT HIT MARGIN WITH _SCORE MARGIN
         private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
         private float _hitPointY; // Y position of the hit point
@@ -67,20 +68,18 @@ namespace KeyboardMania.States
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
             : base(game, graphicsDevice, content)
         {
-            //don't delete these like before!!
-            //_noteTexture = _content.Load<Texture2D>("Controls/mania-note1"); //OLD, THIS IS FOR PRE SKINS
-            _noteTexture = _content.Load<Texture2D>("Skins/NoteTextures/WhiteNote/mania-note1");
-
-            _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
-            _holdHeadTexture = _content.Load<Texture2D>("Controls/mania-note1H");
-            //_holdLengthTexture = _content.Load<Texture2D>("Controls/mania-note1L");
             _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
+            _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
             _screenWidth = graphicsDevice.Viewport.Width;
             _screenHeight = graphicsDevice.Viewport.Height;
 
-            //below filepaths are for bugtesting, uncomment them to KeyboardMania the game with specific files
-            //_osuFilePath = @"C:\Users\kong3\source\repos\Keyboard-Mania\KeyboardMania\Beatmaps\M2U - Mare Maris\M2U - Mare Maris (Raveille) [EXPERT].osu";
-            //_mp3FilePath = @"C:\Users\kong3\source\repos\Keyboard-Mania\KeyboardMania\Beatmaps\M2U - Mare Maris\maremaris.mp3";
+            //_noteTexture = _content.Load<Texture2D>("Skins/NoteTextures/WhiteNote/mania-note1");
+            //_holdTexture = _content.Load<Texture2D>("Controls/mania-note1H");
+            //_lengthTexture = _content.Load<Texture2D>("Controls/mania-note1L");
+
+            settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
+            var parseSkinSettings = new ParseSkinSettings(_content);
+            parseSkinSettings.ParseCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentTextures);
             _mp3Player = new Mp3Player(_mp3FilePath);
 
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;
@@ -183,24 +182,6 @@ namespace KeyboardMania.States
 
             return hitObject;
         }
-        private void ParseHoldNoteSegments(HitObject hitObject, int lane)
-        {
-            double segmentDuration = 100; // Milliseconds between each segment
-            double currentTime = hitObject.StartTime;
-
-            while (currentTime < hitObject.EndTime)
-            {
-                var segment = new HitObject
-                {
-                    Lane = lane,
-                    StartTime = currentTime,
-                    EndTime = currentTime,
-                    IsHeldNote = true
-                };
-                _hitObjectsByLane[lane].Add(segment);
-                currentTime += segmentDuration;
-            }
-        }
         public override void Update(GameTime gameTime)
         {
             // Start the song if it's the first update frame
@@ -280,12 +261,12 @@ namespace KeyboardMania.States
                     {
                         if (hitObject.IsHeldNote)
                         {
-                            noteTexture = _holdHeadTexture;
+                            noteTexture = _holdTexture;
                         }
                         float xPosition = (_screenWidth / 2) - (_keyWidth * NumberOfKeys / 2) + (hitObject.Lane * _keyWidth);
-                        var note = new Note(_content, noteTexture, hitObject.IsHeldNote)
+                        var note = new Note(_content, noteTexture, hitObject.IsHeldNote, _lengthTexture)
                         {
-                            Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
+                            Position = new Vector2(xPosition, -noteTexture[hitObject.Lane].Height * _noteScaleFactor), // Start position above the screen
                             HitObject = hitObject,
                             Scale = _noteScaleFactor,
                             Velocity = new Vector2(0, _noteVelocity)
@@ -403,28 +384,6 @@ namespace KeyboardMania.States
 
             return false;
         }
-        private bool IsHoldComplete(double currentTime, int holdEndTime, float hitMargin)
-        {
-            if (currentTime == holdEndTime)
-            {
-                return true;
-            }
-            else if (currentTime > holdEndTime)
-            {
-                if ((currentTime - hitMargin) <= holdEndTime)
-                {
-                    return true;
-                }
-            }
-            else if (currentTime < holdEndTime)
-            {
-                if ((currentTime + hitMargin) >= holdEndTime)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         private void HandleKeyReleases()
         {
             KeyboardState keyboardState = Keyboard.GetState();
@@ -522,8 +481,8 @@ namespace KeyboardMania.States
     public class Note : Component
     {
         public HitObject HitObject { get; set; }
-        public Texture2D Texture => _texture; // Expose texture to access height for hit calculation
-        private Texture2D _texture;
+        public List<Texture2D> Texture => _texture; // Expose texture to access height for hit calculation
+        private List<Texture2D> _texture;
         //private Texture2D 
         private Texture2D _holdLengthTexture;
         public Vector2 Position;
@@ -534,13 +493,13 @@ namespace KeyboardMania.States
         public bool _firstPressed = true;
         public float Scale { get; set; } = 1f;
 
-        public Note(ContentManager content, Texture2D texture, bool isHeld, string holdTexturePath = "Controls/mania-note1L") //debug sets it to default white hold length
+        public Note(ContentManager content, List<Texture2D> texture, bool isHeld, List<Texture2D> lengthTexture) //debug sets it to default white hold length
         {
             _texture = texture;
             _isHeld = isHeld;
             if (isHeld)
             {
-                _holdLengthTexture = content.Load<Texture2D>(holdTexturePath);
+                _holdLengthTexture = lengthTexture[1]; 
             }
         }
         public void StartHolding(double currentTime)
@@ -572,7 +531,7 @@ namespace KeyboardMania.States
             {
                 if (!_isHeld)
                 {
-                    spriteBatch.Draw(_texture, Position, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+                    spriteBatch.Draw(_texture[HitObject.Lane], Position, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
                 }
                 else
                 {
@@ -590,23 +549,23 @@ namespace KeyboardMania.States
             Vector2 segmentPosition;
             float totalHeight = Convert.ToSingle((HitObject.EndTime - HitObject.StartTime) / 1000.0) * Velocity.Y; //using speed = distance / time, distance - time * speed
             //segments = Convert.ToInt32(Math.Ceiling((totalHeight - (2 * _texture.Height) )/ (_holdLengthTexture.Height * Scale))); //2.0 version, caused error when segments < 1 [GIVES TOO MANY]
-            segments = Convert.ToInt32(totalHeight / (_texture.Height * Scale)); //1.0 version, used for old segment position tests (remove l8r) [SEEMS TO WORK NOW]
+            segments = Convert.ToInt32(totalHeight / (_texture[HitObject.Lane].Height * Scale)); //1.0 version, used for old segment position tests (remove l8r) [SEEMS TO WORK NOW]
             if (segments < 1)
             {
                 segments = 1;
             }
             //Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
 
-            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (2 * segments * _holdLengthTexture.Height * Scale) - 2 * _texture.Height * Scale); //FIX THIS ASAP IAM GOING INSANE
+            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (2 * segments * _holdLengthTexture.Height * Scale) - 2 * _texture[HitObject.Lane].Height * Scale); //FIX THIS ASAP IAM GOING INSANE
             //Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale)); //old finalPosition calculator, finds the final value by considering _texture.Height
-            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture.Height * Scale) + 2 * _holdLengthTexture.Height * Scale);
+            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture[HitObject.Lane].Height * Scale) + 2 * _holdLengthTexture.Height * Scale);
 
-            spriteBatch.Draw(_texture, headPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+            spriteBatch.Draw(_texture[HitObject.Lane], headPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
             for (int i = 2; i <= (segments + 1) * 2 + 2; i++) //segments on my laptop seems to be (segments+1) * 2 + 2, on home computer = 
             {
                 //Vector2 segmentPosition = new Vector2(Position.X, (Position.Y - (_texture.Height + (i * _holdLengthTexture.Height * Scale))) / 2);
 
-                segmentPosition = new Vector2(Position.X, Position.Y - ((_texture.Height * Scale) + ((i - 1) * (_holdLengthTexture.Height) * Scale)) + 3 * _holdLengthTexture.Height * Scale); //works
+                segmentPosition = new Vector2(Position.X, Position.Y - ((_texture[HitObject.Lane].Height * Scale) + ((i - 1) * (_holdLengthTexture.Height) * Scale)) + 3 * _holdLengthTexture.Height * Scale); //works
                 spriteBatch.Draw(_holdLengthTexture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
 
                 //spriteBatch.Draw(_texture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f); //old, causes strange tearing effect on the note
@@ -617,12 +576,12 @@ namespace KeyboardMania.States
         }
         private void DrawEndTexture(SpriteBatch spriteBatch, Vector2 finalPositon)
         {
-            Vector2 originOfTexture = new Vector2(_texture.Width, _texture.Height);
-            spriteBatch.Draw(_texture, finalPositon, null, Color.White, MathHelper.Pi, originOfTexture, Scale, SpriteEffects.None, 0f);
+            Vector2 originOfTexture = new Vector2(_texture[HitObject.Lane].Width, _texture[HitObject.Lane].Height);
+            spriteBatch.Draw(_texture[HitObject.Lane], finalPositon, null, Color.White, MathHelper.Pi, originOfTexture, Scale, SpriteEffects.None, 0f);
         }
         public bool IsOffScreen(int screenHeight)
         {
-            float noteHeight = _texture.Height * Scale;
+            float noteHeight = _texture[HitObject.Lane].Height * Scale;
             return Position.Y > screenHeight + noteHeight;
         }
         public bool IsHoldOffScreen(int screenHeight, Note note)

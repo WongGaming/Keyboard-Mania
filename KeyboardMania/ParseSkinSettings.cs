@@ -20,7 +20,7 @@ namespace KeyboardMania
             _content = content;
         }
 
-        public void ParseCurrentSettings(string settingsFilePath, string rootDirectory, ContentManager content, List<Texture2D> _noteTextures, List<Texture2D> _holdNoteTextures, List<Texture2D> _lengthNoteTextures)
+        public void ParseCurrentSettings(string settingsFilePath, string rootDirectory, ContentManager content, List<Texture2D> _noteTextures, List<Texture2D> _holdNoteTextures, List<Texture2D> _lengthNoteTextures, List<string> skinName)
         {
             string skinFoldersLocation = Path.GetFullPath(Path.Combine(rootDirectory, "Content", "Skins", "NoteTextures"));
             string[] lines = File.ReadAllLines(settingsFilePath);
@@ -35,7 +35,6 @@ namespace KeyboardMania
                     {
                         skinSettingsSection = true;
                     }
-
                     if (skinSettingsSection)
                     {
                         string directoryPath = Path.Combine(skinFoldersLocation, line);
@@ -65,6 +64,7 @@ namespace KeyboardMania
                                 {
                                     _noteTextures.Add(_content.Load<Texture2D>(relativePath));
                                     validFilesFound = true;
+                                    skinName.Add(line);
                                 }
                                 if (!validFilesFound)
                                 {
@@ -75,21 +75,34 @@ namespace KeyboardMania
                             if (_noteTextures.Count == 4)
                             {
                                 fullyParsed = true;
-
+                                skinSettingsSection = false;
                             }
                         }
-                        else
+                        else if(!line.StartsWith("[Skin Settings]"))
                         {
                             InstantiateSettings instantiateSettings = new InstantiateSettings();
                             instantiateSettings.InitialiseSkin(settingsFilePath);
                             _lengthNoteTextures.Clear();
                             _holdNoteTextures.Clear();
                             _noteTextures.Clear();
+                            skinName.Clear();
                             lines = File.ReadAllLines(settingsFilePath);
                         }
                     }
-                    }
+                }
             } while (!fullyParsed) ;
+        }
+        public void SaveNewSettings(string settingsFilePath, List<string> _currentTextures)
+        {
+            string file = File.ReadAllText(settingsFilePath);
+            string skinSettingsContent;
+            skinSettingsContent = "[Skin Settings]\n";
+            for (int i = 0; i < _currentTextures.Count; i++)
+            {
+                skinSettingsContent += _currentTextures[i] + "\n";
+            }
+            file = Regex.Replace(file, @"\[Skin Settings\][\s\S]*?\[Display Settings\]", skinSettingsContent + "[Display Settings]");
+            File.WriteAllText(settingsFilePath, file);
         }
     }
 }   

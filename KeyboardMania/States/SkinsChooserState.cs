@@ -10,112 +10,137 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Input;
+using KeyboardMania.Controls;
 
 namespace KeyboardMania.States
 {
     internal class SkinsChooserState : State
     {
-        private Texture2D _noteTexture;
-        private float _keyWidth;
-        private Texture2D _keyTexture;
-        private string _rootDirectory;
+        private string _skinDirectory;
+        private string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
         private List<Texture2D> _noteTextures = new List<Texture2D>();
-        private List<Texture2D> _holdNoteTextures = new List<Texture2D>();
-        private List<Texture2D> _lengthNoteTextures = new List<Texture2D>();
-        private const int NumberOfKeys = 4;
-        private Texture2D _hitFeedbackTexture;
-        private int _screenWidth;
-        private List<HitFeedback> _hitFeedbacks;
-        private int _screenHeight;
-        private float _noteVelocity = 2000f;
-        private float _keyScaleFactor = 1.0f;
-        private float _noteScaleFactor;
-        private Dictionary<int, List<HitObject>> _hitObjectsByLane = new Dictionary<int, List<HitObject>>();
-        private Dictionary<int, List<Note>> _activeNotesByLane = new Dictionary<int, List<Note>>();
-        private bool[] _keysPressed = new bool[NumberOfKeys];
-        private Keys[] _keyMapping = { Keys.D, Keys.F, Keys.J, Keys.K };
-        private List<Vector2> _keyPositions;
-        private float _hitPointY = 0f;
-        private double _currentTime = 0;
-
+        private List<Texture2D> _holdTextures = new List<Texture2D>();
+        private List<Texture2D> _lengthTextures = new List<Texture2D>();
+        private List<string> _currentTextures = new List<string>();
+        private Dictionary<int, string> _allTextures = new Dictionary<int, string>();
+        private int _selectedItem;
+        private List<int> _currentTextureIDs = new List<int>();
+        private string[] settingsFilePath;
+        private SpriteFont _font;
+        private List<Component> _components;
         public SkinsChooserState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
         : base(game, graphicsDevice, content)
         {
-            _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
-            _screenWidth = graphicsDevice.Viewport.Width;
-            _screenHeight = graphicsDevice.Viewport.Height;
-            _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
-            string[] settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
-            var parseSkinSettings = new ParseSkinSettings(_content);
-            parseSkinSettings.ParseCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _noteTextures, _holdNoteTextures, _lengthNoteTextures);
-            _hitFeedbacks = new List<HitFeedback>();
-            _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
-            _keyPositions = CalculateKeyPositions(NumberOfKeys, _keyWidth, _screenHeight - 100); // Initialize _keyPositions
-            _noteScaleFactor = 100f * _keyScaleFactor / 256f;
-        }
+            var buttonTexture = _content.Load<Texture2D>("Controls/Button");
+            int buttonSpacing = 50;
 
-        private void HandleKeyReleases()
-        {
-            KeyboardState keyboardState = Keyboard.GetState();
-            // Check each lane for key release
-            for (int lane = 0; lane < NumberOfKeys; lane++)
+            settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
+            _skinDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "Content", "Skins", "NoteTextures"));
+            _font = _content.Load<SpriteFont>("Fonts/Font");
+            LoadTextures();
+            var parseSkinSettings = new ParseSkinSettings(_content);
+            parseSkinSettings.ParseCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _noteTextures, _holdTextures, _lengthTextures, _currentTextures);
+            InstantiateTextureID();
+            var saveButton = new Button(buttonTexture, _font)
             {
-                if (keyboardState.IsKeyUp(_keyMapping[lane]) && _keysPressed[lane])
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 1 * buttonSpacing),
+                Text = "Save",
+            };
+            saveButton.Click += SaveButton_Click;
+            var defaultResetButton = new Button(buttonTexture, _font)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 2 * buttonSpacing),
+                Text = "Reset to Default",
+            };
+            defaultResetButton.Click += DefaultResetButton_Click;
+            var returnButton = new Button(buttonTexture, _font)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 3 * buttonSpacing),
+                Text = "Return (SAVE FIRST)",
+            };
+            returnButton.Click += ReturnButton_Click;
+            _components = new List<Component>()
+            {
+                saveButton,
+                defaultResetButton,
+                returnButton,
+            };
+        }
+        private void SaveButton_Click(object sender, EventArgs e)
+        {
+            var parseSkinSettings = new ParseSkinSettings(_content);
+            parseSkinSettings.SaveNewSettings(settingsFilePath[0], _currentTextures);
+        }
+        private void DefaultResetButton_Click(object sender, EventArgs e)
+        {
+            _currentTextures.Clear();
+            for (int i = 0; i < 4; i++)
+            {
+                _currentTextures.Add("WhiteNote");
+            }
+            _currentTextureIDs.Clear();
+            for(int i = 0; i < _allTextures.Count; i++)
+            {
+                for (int j = 0; j < _currentTextures.Count; j++)
                 {
-                    // Key was released, add feedback and reset pressed state
-                    _hitFeedbacks.Add(new HitFeedback(_hitFeedbackTexture, _keyPositions[lane], _noteVelocity));
-                    _keysPressed[lane] = false;
+                    if (_currentTextures[j] == _allTextures[i])
+                    {
+                        _currentTextureIDs.Add(i);
+                    }
                 }
             }
         }
-
-        private List<Vector2> CalculateKeyPositions(int numberOfKeys, float keyWidth, float bottomPositionY)
+        private void ReturnButton_Click(object sender, EventArgs e)
         {
-            var keyPositions = new List<Vector2>();
-            float totalWidth = numberOfKeys * keyWidth;
-            float startX = (_screenWidth / 2) - (totalWidth / 2);
-
-            for (int i = 0; i < NumberOfKeys; i++)
-            {
-                float xPosition = startX + (i * keyWidth);
-                keyPositions.Add(new Vector2(xPosition, bottomPositionY));
-            }
-
-            return keyPositions;
+            _game.ChangeState(new OptionsMenuState(_game, _graphicsDevice, _content));
         }
 
+        private void InstantiateTextureID()
+        {
+            _currentTextureIDs.Clear();
+            for (int i = 0; i < _allTextures.Count; i++)
+            {
+                for (int j = 0; j < _currentTextures.Count; j++)
+                {
+                    if (_currentTextures[j] == _allTextures[i])
+                    {
+                        _currentTextureIDs.Add(i);
+                    }
+                }
+            }
+        }
+        private void LoadTextures()
+        {
+            _allTextures.Clear();
+            int i = 0;
+            var directories = Directory.GetDirectories(_skinDirectory);
+            foreach (var directory in directories)
+            {
+                _allTextures.Add(i, Path.GetFileName(directory));
+                i = i + 1;
+            }
+        }
         public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            _graphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
 
-            foreach (var laneNotes in _activeNotesByLane.Values)
+            float scale = 1.5f; // Change this value to scale the text
+
+            for (int i = 0; i < _currentTextures.Count; i++)
             {
-                foreach (var note in laneNotes)
+                if (i == _selectedItem)
                 {
-                    note.Draw(gameTime, spriteBatch);
+                    spriteBatch.DrawString(_font, _currentTextures[i], new Vector2(100 + i * 100 * scale, 100), Color.Red, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+                }
+                else
+                {
+                    spriteBatch.DrawString(_font, _currentTextures[i], new Vector2(100 + i * 100 * scale, 100), Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
                 }
             }
-
-            var keyStates = new[] { Keys.D, Keys.F, Keys.J, Keys.K };
-            for (int i = 0; i < keyStates.Length; i++)
+            foreach (var component in _components)
             {
-                if (Keyboard.GetState().IsKeyDown(keyStates[i]))
-                {
-                    spriteBatch.Draw(_hitFeedbackTexture, _keyPositions[i], null, Color.White, 0f, Vector2.Zero, new Vector2(_keyScaleFactor), SpriteEffects.None, 0f);
-                }
+                component.Draw(gameTime, spriteBatch);
             }
-
-            foreach (var feedback in _hitFeedbacks)
-            {
-                feedback.Draw(gameTime, spriteBatch, _keyScaleFactor);
-            }
-
-            foreach (var keyPosition in _keyPositions)
-            {
-                spriteBatch.Draw(_keyTexture, keyPosition, null, Color.White, 0f, Vector2.Zero, new Vector2(_keyScaleFactor), SpriteEffects.None, 0f);
-            }
-
             spriteBatch.End();
         }
 
@@ -123,76 +148,64 @@ namespace KeyboardMania.States
         {
 
         }
-
+        bool firstPress = true;
+        private void HandleInput()
+        {
+            var keyboardState = Keyboard.GetState();
+            if (keyboardState.IsKeyDown(Keys.Down) && firstPress)
+            {
+                _currentTextureIDs[_selectedItem]++;
+                if (_currentTextureIDs[_selectedItem] >= _allTextures.Count)
+                {
+                    _currentTextureIDs[_selectedItem] = 0;
+                }
+                _currentTextures[_selectedItem] = _allTextures[_currentTextureIDs[_selectedItem]];
+                firstPress = false;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Up) && firstPress)
+            {
+                _currentTextureIDs[_selectedItem]--;
+                if (_currentTextureIDs[_selectedItem] < 0)
+                {
+                    _currentTextureIDs[_selectedItem] = _allTextures.Count - 1;
+                }
+                _currentTextures[_selectedItem] = _allTextures[_currentTextureIDs[_selectedItem]];
+                firstPress = false;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Left) && firstPress)
+            {
+                _selectedItem--;
+                if (_selectedItem < 0)
+                {
+                    _selectedItem = _currentTextures.Count - 1;
+                }
+                firstPress = false;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Right) && firstPress)
+            {
+                _selectedItem++;
+                if (_selectedItem >= _currentTextures.Count)
+                {
+                    _selectedItem = 0;
+                }
+                firstPress = false;
+            }
+            /*else if (keyboardState.IsKeyDown(Keys.Enter) && firstPress)
+            {
+                _game.ChangeState(new GameState(_game, _graphicsDevice, _content, _beatmaps[_selectedItem], LookForMp3File()));
+            }*/
+            if (keyboardState.IsKeyUp(Keys.Down) && keyboardState.IsKeyUp(Keys.Up) && keyboardState.IsKeyUp(Keys.Left) && keyboardState.IsKeyUp(Keys.Right) && keyboardState.IsKeyUp(Keys.Enter))
+            {
+                firstPress = true;
+            }
+        }
         public override void Update(GameTime gameTime)
         {
-            _currentTime = gameTime.TotalGameTime.TotalMilliseconds; // Update _currentTime
-
-            for (int i = _hitFeedbacks.Count - 1; i >= 0; i--)
+            foreach (var component in _components)
             {
-                _hitFeedbacks[i].Update(gameTime);
-                if (_hitFeedbacks[i].IsOffScreen(_screenHeight))
-                {
-                    _hitFeedbacks.RemoveAt(i);
-                }
+                component.Update(gameTime);
             }
-
-            for (int lane = 0; lane < NumberOfKeys; lane++)
-            {
-                var hitObjects = _hitObjectsByLane[lane];
-                var activeNotes = _activeNotesByLane[lane];
-
-                // Sort active notes by their Y-position (lower notes first)
-                activeNotes.Sort((n1, n2) => n1.Position.Y.CompareTo(n2.Position.Y));
-
-                for (int i = hitObjects.Count - 1; i >= 0; i--)
-                {
-                    var hitObject = hitObjects[i];
-                    double spawnTime = hitObject.StartTime - (_hitPointY / _noteVelocity * 1000);
-                    var noteTexture = _noteTexture;
-                    if (!activeNotes.Exists(note => note.HitObject == hitObject) && _currentTime >= spawnTime)
-                    {
-                        float xPosition = (_screenWidth / 2) - (_keyWidth * NumberOfKeys / 2) + (hitObject.Lane * _keyWidth);
-                        var note = new Note(_content, noteTexture, hitObject.IsHeldNote)
-                        {
-                            Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
-                            HitObject = hitObject,
-                            Scale = _noteScaleFactor,
-                            Velocity = new Vector2(0, _noteVelocity)
-                        };
-                        activeNotes.Add(note);
-                        hitObjects.RemoveAt(i); // Remove the note from the hitObjects list once it has spawned
-                    }
-                }
-                int currentNote = 0;
-                bool firstNotePress = true; // Added firstNotePress
-                                            // Update active notes and check for hits (starting with the closest to the hit point)
-                for (int i = activeNotes.Count - 1; i >= 0; i--)
-                {
-                    var note = activeNotes[i];
-                    note.Update(gameTime);
-                    // Check if note is hit
-                    if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote && firstNotePress == true)
-                    {
-                        activeNotes.RemoveAt(i);
-                        currentNote = currentNote + 1;
-                        firstNotePress = false;
-                    }
-                    else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote && firstNotePress == true)
-                    {
-                        activeNotes.RemoveAt(i);
-                        currentNote = currentNote + 1;
-                        firstNotePress = false;
-                    }
-                }
-            }
-            HandleKeyReleases();
-        }
-
-        private bool CheckForHit(Note note, float hitPointY, int lane)
-        {
-            // Implement the logic to check if the note is hit
-            return false;
+            HandleInput();
         }
     }
 }
