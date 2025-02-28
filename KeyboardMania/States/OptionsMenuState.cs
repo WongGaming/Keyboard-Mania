@@ -26,21 +26,21 @@ namespace KeyboardMania.States
 
             var skinsChooserButton = new Button(buttonTexture, buttonFont)
             {
-                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 2 * buttonSpacing),
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 1 * buttonSpacing),
                 Text = "Skins Chooser",
             };
             skinsChooserButton.Click += SkinsChooserButton_Click;
 
             var displaySettingsButton = new Button(buttonTexture, buttonFont)
             {
-                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 3 * buttonSpacing),
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 2 * buttonSpacing),
                 Text = "Display Settings",
             };
             displaySettingsButton.Click += DisplaySettingsButton_Click;
 
             var gameplaySettingsButton = new Button(buttonTexture, buttonFont)
             {
-                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 4 * buttonSpacing),
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 3 * buttonSpacing),
                 Text = "Gameplay Settings",
             };
 
@@ -48,7 +48,7 @@ namespace KeyboardMania.States
 
             var returnButton = new Button(buttonTexture, buttonFont)
             {
-                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 1 * buttonSpacing),
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 4 * buttonSpacing),
                 Text = "Return",
             };
 

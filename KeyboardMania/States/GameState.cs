@@ -484,7 +484,7 @@ namespace KeyboardMania.States
         public List<Texture2D> Texture => _texture; // Expose texture to access height for hit calculation
         private List<Texture2D> _texture;
         //private Texture2D 
-        private Texture2D _holdLengthTexture;
+        private List<Texture2D> _holdLengthTexture;
         public Vector2 Position;
         public Vector2 Velocity;
         private bool _isHeld;
@@ -499,7 +499,7 @@ namespace KeyboardMania.States
             _isHeld = isHeld;
             if (isHeld)
             {
-                _holdLengthTexture = lengthTexture[1]; 
+                _holdLengthTexture = lengthTexture; 
             }
         }
         public void StartHolding(double currentTime)
@@ -556,17 +556,17 @@ namespace KeyboardMania.States
             }
             //Position = new Vector2(xPosition, -noteTexture.Height * _noteScaleFactor), // Start position above the screen
 
-            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (2 * segments * _holdLengthTexture.Height * Scale) - 2 * _texture[HitObject.Lane].Height * Scale); //FIX THIS ASAP IAM GOING INSANE
+            Vector2 finalPosition = new Vector2(Position.X, Position.Y - (2 * segments * _holdLengthTexture[HitObject.Lane].Height * Scale) - 2 * _texture[HitObject.Lane].Height * Scale); //FIX THIS ASAP IAM GOING INSANE
             //Vector2 finalPosition = new Vector2(Position.X, Position.Y - (segments * _texture.Height * Scale)); //old finalPosition calculator, finds the final value by considering _texture.Height
-            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture[HitObject.Lane].Height * Scale) + 2 * _holdLengthTexture.Height * Scale);
+            Vector2 headPosition = new Vector2(Position.X, Position.Y - (_texture[HitObject.Lane].Height * Scale) + 2 * _holdLengthTexture[HitObject.Lane].Height * Scale);
 
             spriteBatch.Draw(_texture[HitObject.Lane], headPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
             for (int i = 2; i <= (segments + 1) * 2 + 2; i++) //segments on my laptop seems to be (segments+1) * 2 + 2, on home computer = 
             {
                 //Vector2 segmentPosition = new Vector2(Position.X, (Position.Y - (_texture.Height + (i * _holdLengthTexture.Height * Scale))) / 2);
 
-                segmentPosition = new Vector2(Position.X, Position.Y - ((_texture[HitObject.Lane].Height * Scale) + ((i - 1) * (_holdLengthTexture.Height) * Scale)) + 3 * _holdLengthTexture.Height * Scale); //works
-                spriteBatch.Draw(_holdLengthTexture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+                segmentPosition = new Vector2(Position.X, Position.Y - ((_texture[HitObject.Lane].Height * Scale) + ((i - 1) * (_holdLengthTexture[HitObject.Lane].Height) * Scale)) + 3 * _holdLengthTexture[HitObject.Lane].Height * Scale); //works
+                spriteBatch.Draw(_holdLengthTexture[HitObject.Lane], segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
 
                 //spriteBatch.Draw(_texture, segmentPosition, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f); //old, causes strange tearing effect on the note
             }
