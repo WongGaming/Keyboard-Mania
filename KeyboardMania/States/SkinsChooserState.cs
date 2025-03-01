@@ -28,6 +28,7 @@ namespace KeyboardMania.States
         private string[] settingsFilePath;
         private SpriteFont _font;
         private List<Component> _components;
+        private bool noteSkins = true;
         public SkinsChooserState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
         : base(game, graphicsDevice, content)
         {
@@ -59,11 +60,19 @@ namespace KeyboardMania.States
                 Text = "Return (SAVE FIRST)",
             };
             returnButton.Click += ReturnButton_Click;
+            var switchButton = new Button(buttonTexture, _font)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 4 * buttonSpacing),
+                Text = noteSkins ? "Switch to Hit Skins" : "Switch to Note Skins"
+            };
+            switchButton.Click += SwitchButton_Click;
+            switchButton.Click += (sender, e) => switchButton.Text = noteSkins ? "Switch to Hit Skins" : "Switch to Note Skins";
             _components = new List<Component>()
             {
                 saveButton,
                 defaultResetButton,
-                returnButton,
+                switchButton,
+                returnButton
             };
         }
         private void SaveButton_Click(object sender, EventArgs e)
@@ -88,6 +97,17 @@ namespace KeyboardMania.States
                         _currentTextureIDs.Add(i);
                     }
                 }
+            }
+        }
+        private void SwitchButton_Click(object sender, EventArgs e)
+        {
+            if (noteSkins)
+            {
+                noteSkins = false;
+            }
+            else
+            {
+                noteSkins = true;
             }
         }
         private void ReturnButton_Click(object sender, EventArgs e)

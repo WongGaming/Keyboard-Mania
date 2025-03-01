@@ -83,13 +83,13 @@ namespace KeyboardMania.States
             spriteBatch.Begin();
 
             // Define a scale factor to shrink the texture
-            float shrinkScale = 0.75f; // .75f = home pc, 0.35f = laptop
+            float logoScale = 0.75f; // .75f = home pc, 0.35f = laptop
             // Center the texture on the screen
-            Vector2 position = new Vector2((_graphicsDevice.Viewport.Width - (_logo.Width * shrinkScale)) / 2, (_graphicsDevice.Viewport.Height - (_logo.Height * shrinkScale)) / 2 - (_graphicsDevice.Viewport.Height / 4));
+            Vector2 position = new Vector2((_graphicsDevice.Viewport.Width - (_logo.Width * logoScale)) / 2, (_graphicsDevice.Viewport.Height - (_logo.Height * logoScale)) / 2 - (_graphicsDevice.Viewport.Height / 4));
 
 
             // Draw the texture with the shrink scale
-            spriteBatch.Draw(_logo, position, null, Color.White, 0f, Vector2.Zero, shrinkScale, SpriteEffects.None, 0f);
+            spriteBatch.Draw(_logo, position, null, Color.White, 0f, Vector2.Zero, logoScale, SpriteEffects.None, 0f);
 
             // Draw components (buttons)
             foreach (var component in _components)

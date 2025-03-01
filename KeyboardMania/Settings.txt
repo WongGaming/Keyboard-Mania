@@ -1,7 +1,7 @@
 [Skin Settings]
+WhiteNote
 BlueNote
 BlueNote
-GreenNote
-GreenNote
+WhiteNote
 [Display Settings]
 [Gameplay Settings]

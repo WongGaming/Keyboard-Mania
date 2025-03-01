@@ -24,6 +24,7 @@ namespace KeyboardMania
             #region DisplaySettingsInstantiation
             string displaySettingsContent;
             displaySettingsContent = "[Display Settings]\n";
+            displaySettingsContent = "logoScale = {0}\n";
             //add when I decide what to put here
             #endregion
 
