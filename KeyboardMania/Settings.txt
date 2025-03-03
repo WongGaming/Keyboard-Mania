@@ -1,13 +1,13 @@
 [Skin Settings]
-WhiteNote
-WhiteNote
-WhiteNote
-WhiteNote
-Circle
-Circle
-Circle
-Circle
-Circle
-Circle
+BlueNote
+GreenNote
+BlueNote
+BlueNote
+Playful
+Cartoony
+Playful
+Cartoony
+Playful
+Cartoony
 [Display Settings]
 [Gameplay Settings]

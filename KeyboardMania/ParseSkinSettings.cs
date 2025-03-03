@@ -26,9 +26,15 @@ namespace KeyboardMania
             string[] lines = File.ReadAllLines(settingsFilePath);
             bool skinSettingsSection = false;
             bool fullyParsed = false;
+
+            if (lines.Length == 0)
+            {
+                InstantiateSettings instantiateSettings = new InstantiateSettings();
+                instantiateSettings.InitialiseSettings(settingsFilePath);
+            }
+
             do
             {
-
                 foreach (string line in lines)
                 {
                     if (line.StartsWith("[Skin Settings]"))
@@ -78,7 +84,7 @@ namespace KeyboardMania
                                 skinSettingsSection = false;
                             }
                         }
-                        else if(!line.StartsWith("[Skin Settings]"))
+                        else if (!line.StartsWith("[Skin Settings]"))
                         {
                             InstantiateSettings instantiateSettings = new InstantiateSettings();
                             instantiateSettings.InitialiseSkin(settingsFilePath);
@@ -90,7 +96,7 @@ namespace KeyboardMania
                         }
                     }
                 }
-            } while (!fullyParsed) ;
+            } while (!fullyParsed);
         }
         public void ParseHitCurrentSettings(string settingsFilePath, string rootDirectory, ContentManager content, List<Texture2D> _hitTextures, List<string> skinName)
         {
@@ -138,10 +144,9 @@ namespace KeyboardMania
                                 currentScore = "300g";
                             }
                             string skinFoldersLocation = Path.Combine(baseSkinFoldersLocation, currentScore, line);
-                            string directoryPath = Path.Combine(skinFoldersLocation, line);
-                            if (!string.IsNullOrWhiteSpace(line) && Directory.Exists(directoryPath))
+                            if (!string.IsNullOrWhiteSpace(line) && Directory.Exists(skinFoldersLocation))
                             {
-                                string[] files = Directory.GetFiles(directoryPath, "*.png");
+                                string[] files = Directory.GetFiles(skinFoldersLocation, "*.png");
                                 bool validFilesFound = false;
                                 foreach (string file in files)
                                 {
@@ -175,7 +180,7 @@ namespace KeyboardMania
                                 instantiateSettings.InitialiseSkin(settingsFilePath);
                                 _hitTextures.Clear();
                                 skinName.Clear();
-                                lines = File.ReadAllLines(settingsFilePath);
+                                 lines = File.ReadAllLines(settingsFilePath);
                             }
                         }
                         
