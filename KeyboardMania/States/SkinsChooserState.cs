@@ -52,7 +52,12 @@ namespace KeyboardMania.States
 
             LoadNoteTextures();
             LoadHitTextures();
-
+            if ((_settingsFilePath.Count() == 0))
+            {
+                var instantiateSettings = new InstantiateSettings();
+                instantiateSettings.InitialiseSettings(_rootDirectory);
+                _settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
+            }
             var parseSkinSettings = new ParseSkinSettings(_content);
             parseSkinSettings.ParseNoteCurrentSettings(_settingsFilePath[0], _rootDirectory, _content, _noteTextures, _holdTextures, _lengthTextures, _currentNoteTextures);
             parseSkinSettings.ParseHitCurrentSettings(_settingsFilePath[0], _rootDirectory, _content,_hitTextures, _currentHitTextures);

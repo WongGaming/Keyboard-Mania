@@ -83,7 +83,7 @@ namespace KeyboardMania.States
             spriteBatch.Begin();
 
             // Define a scale factor to shrink the texture
-            float logoScale = 0.75f; // .75f = home pc, 0.35f = laptop
+            float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
             // Center the texture on the screen
             Vector2 position = new Vector2((_graphicsDevice.Viewport.Width - (_logo.Width * logoScale)) / 2, (_graphicsDevice.Viewport.Height - (_logo.Height * logoScale)) / 2 - (_graphicsDevice.Viewport.Height / 4));
 

@@ -12,6 +12,10 @@ namespace KeyboardMania
     {
         public void InitialiseSettings(string settingsFilePath)
         {
+            if (!File.Exists(settingsFilePath))
+            {
+                File.Create(settingsFilePath);
+            }
             #region SkinSettingsInstantiation
             string skinSettingsContent;
             skinSettingsContent = "[Skin Settings]\n";
@@ -31,7 +35,7 @@ namespace KeyboardMania
             #region DisplaySettingsInstantiation
             string displaySettingsContent;
             displaySettingsContent = "[Display Settings]\n";
-            displaySettingsContent = "logoScale = {0}\n";
+            displaySettingsContent += "logoScale = {0}\n";
             //add when I decide what to put here
             #endregion
 

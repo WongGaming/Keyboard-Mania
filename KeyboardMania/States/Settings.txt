@@ -1,8 +1,8 @@
 [Skin Settings]
-BlueNote
+WhiteNote
 GreenNote
-BlueNote
-BlueNote
+GreenNote
+WhiteNote
 Playful
 Cartoony
 Playful
