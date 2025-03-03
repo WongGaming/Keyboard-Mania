@@ -79,7 +79,9 @@ namespace KeyboardMania.States
 
             settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
             var parseSkinSettings = new ParseSkinSettings(_content);
-            parseSkinSettings.ParseCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentTextures);
+            parseSkinSettings.ParseNoteCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentTextures);
+
+            //ADD PARSE HIT SETTINGS AFTER PARSE SKIN SETTINGS
             _mp3Player = new Mp3Player(_mp3FilePath);
 
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;

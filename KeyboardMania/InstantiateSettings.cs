@@ -19,6 +19,13 @@ namespace KeyboardMania
             skinSettingsContent += "WhiteNote\n";
             skinSettingsContent += "WhiteNote\n";
             skinSettingsContent += "WhiteNote\n";
+
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
             #endregion
 
             #region DisplaySettingsInstantiation
@@ -47,6 +54,12 @@ namespace KeyboardMania
             skinSettingsContent += "WhiteNote\n";
             skinSettingsContent += "WhiteNote\n";
 
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
+            skinSettingsContent += "Circle\n";
             string CurrentFileContent = File.ReadAllText(settingsFilePath);
             CurrentFileContent = Regex.Replace(CurrentFileContent, @"\[Skin Settings\][\s\S]*?\[Display Settings\]", skinSettingsContent + "[Display Settings]");
             File.WriteAllText(settingsFilePath, CurrentFileContent);

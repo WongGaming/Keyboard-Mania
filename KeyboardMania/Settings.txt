@@ -1,7 +1,13 @@
 [Skin Settings]
 WhiteNote
-BlueNote
-BlueNote
 WhiteNote
+WhiteNote
+WhiteNote
+Circle
+Circle
+Circle
+Circle
+Circle
+Circle
 [Display Settings]
 [Gameplay Settings]
