@@ -46,7 +46,7 @@ namespace KeyboardMania.States
         private float _missMargin;
         //The range that the player can hit the notes, if the player hits within this range but not the other range, the note is counted as a miss (allows ghost tapping)
         private Dictionary<String, float> _scoreMargins = new Dictionary<String, float>();
-        private string[] settingsFilePath;
+        private string settingsFilePath;
         //REPLACE EVERYTHING ABOUT HIT MARGIN WITH _SCORE MARGIN
         private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
         private float _hitPointY; // Y position of the hit point
@@ -77,9 +77,9 @@ namespace KeyboardMania.States
             //_holdTexture = _content.Load<Texture2D>("Controls/mania-note1H");
             //_lengthTexture = _content.Load<Texture2D>("Controls/mania-note1L");
 
-            settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
+            settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
             var parseSkinSettings = new ParseSkinSettings(_content);
-            parseSkinSettings.ParseNoteCurrentSettings(settingsFilePath[0], _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentTextures);
+            parseSkinSettings.ParseNoteCurrentSettings(settingsFilePath, _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentTextures);
 
             //ADD PARSE HIT SETTINGS AFTER PARSE SKIN SETTINGS
             _mp3Player = new Mp3Player(_mp3FilePath);

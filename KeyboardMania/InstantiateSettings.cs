@@ -14,8 +14,12 @@ namespace KeyboardMania
         {
             if (!File.Exists(settingsFilePath))
             {
-                File.Create(settingsFilePath);
+                string settingsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania");
+                Directory.CreateDirectory(settingsDirectory);
+                settingsFilePath = Path.Combine(settingsDirectory, "Settings.txt");
+                File.Create(settingsFilePath).Dispose();
             }
+
             #region SkinSettingsInstantiation
             string skinSettingsContent;
             skinSettingsContent = "[Skin Settings]\n";
@@ -44,7 +48,6 @@ namespace KeyboardMania
             gameplaySettingsContent = "[Gameplay Settings]\n";
             //add when I decide what to put here
             #endregion
-
 
             string fullSettingsContent = skinSettingsContent + displaySettingsContent + gameplaySettingsContent;
             File.WriteAllText(settingsFilePath, fullSettingsContent);

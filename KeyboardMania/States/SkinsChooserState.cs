@@ -35,7 +35,7 @@ namespace KeyboardMania.States
         private Dictionary<int, string> _allNoteTextures = new Dictionary<int, string>();
         private Dictionary<int,string> _allHitTextures = new Dictionary<int, string>();
         private int _selectedItem;
-        private string[] _settingsFilePath;
+        private string _settingsFilePath;
         private SpriteFont _font;
         private List<Component> _components;
         private bool _noteSkins = true;
@@ -45,7 +45,7 @@ namespace KeyboardMania.States
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             int buttonSpacing = 50;
 
-            _settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
+            _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
             _noteSkinDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "Content", "Skins", "NoteTextures"));
             _hitSkinDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "Content", "Skins", "HitTextures"));
             _font = _content.Load<SpriteFont>("Fonts/Font");
@@ -56,11 +56,11 @@ namespace KeyboardMania.States
             {
                 var instantiateSettings = new InstantiateSettings();
                 instantiateSettings.InitialiseSettings(_rootDirectory);
-                _settingsFilePath = Directory.GetFiles(_rootDirectory, "Settings.txt");
+                _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
             }
             var parseSkinSettings = new ParseSkinSettings(_content);
-            parseSkinSettings.ParseNoteCurrentSettings(_settingsFilePath[0], _rootDirectory, _content, _noteTextures, _holdTextures, _lengthTextures, _currentNoteTextures);
-            parseSkinSettings.ParseHitCurrentSettings(_settingsFilePath[0], _rootDirectory, _content,_hitTextures, _currentHitTextures);
+            parseSkinSettings.ParseNoteCurrentSettings(_settingsFilePath, _rootDirectory, _content, _noteTextures, _holdTextures, _lengthTextures, _currentNoteTextures);
+            parseSkinSettings.ParseHitCurrentSettings(_settingsFilePath, _rootDirectory, _content,_hitTextures, _currentHitTextures);
             InstantiateNoteTextureID();
             InstantiateHitTextureID();
 
@@ -100,7 +100,7 @@ namespace KeyboardMania.States
         private void SaveButton_Click(object sender, EventArgs e)
         {
             var parseSkinSettings = new ParseSkinSettings(_content);
-            parseSkinSettings.SaveNewSettings(_settingsFilePath[0], _currentNoteTextures,_currentHitTextures);
+            parseSkinSettings.SaveNewSettings(_settingsFilePath, _currentNoteTextures,_currentHitTextures);
         }
         private void DefaultResetButton_Click(object sender, EventArgs e)
         {
