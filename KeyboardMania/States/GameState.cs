@@ -15,7 +15,10 @@ namespace KeyboardMania.States
 {
     public class GameState : State
     {
+        private int totalNotes = 0;
         private Mp3Player _mp3Player;
+        private int score = 0;
+        private int fadeInTiming = 0;
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
         private Dictionary<int, List<Note>> _activeNotesByLane;
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
@@ -24,12 +27,6 @@ namespace KeyboardMania.States
         private List<Texture2D> _holdTexture = new List<Texture2D>();
         private List<Texture2D> _lengthTexture = new List<Texture2D>();
         //prepare the textures for loading, CHANGE THIS INTO SETTINGS LATER
-        private Texture2D maniaHit0;
-        private Texture2D maniaHit50;
-        private Texture2D maniaHit100;
-        private Texture2D maniaHit200;
-        private Texture2D maniaHit300;
-        private Texture2D maniaHitMax;
         //private Texture2D _holdLengthTexture; possibly obsolete
         private Texture2D _hitFeedbackTexture;
         private double _currentTime;
@@ -43,7 +40,6 @@ namespace KeyboardMania.States
         private const int NumberOfKeys = 4;
         private float _keyWidth;
         private List<string> _currentTextures = new List<string>();
-        private float _missMargin;
         //The range that the player can hit the notes, if the player hits within this range but not the other range, the note is counted as a miss (allows ghost tapping)
         private Dictionary<String, float> _scoreMargins = new Dictionary<String, float>();
         private string settingsFilePath;
@@ -64,7 +60,6 @@ namespace KeyboardMania.States
         private bool _mp3Played = false;
         private int _previousScrollValue = 0; // Store the initial scroll value
         private bool firstNotePress = false;
-        //possible fix to hold notes?
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
             : base(game, graphicsDevice, content)
         {
@@ -82,6 +77,8 @@ namespace KeyboardMania.States
             parseSkinSettings.ParseNoteCurrentSettings(settingsFilePath, _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentTextures);
 
             //ADD PARSE HIT SETTINGS AFTER PARSE SKIN SETTINGS
+            //parseSkinSettings.ParseHitCurrentSettings(settingsFilePath, _rootDirectory, _content, _hitFeedbackTexture, _currentTextures);
+
             _mp3Player = new Mp3Player(_mp3FilePath);
 
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;
@@ -95,10 +92,9 @@ namespace KeyboardMania.States
 
             _hitObjectsByLane = new Dictionary<int, List<HitObject>>();
             _activeNotesByLane = new Dictionary<int, List<Note>>();
-            _hitFeedbacks = new List<HitFeedback>(); // Initialize hit feedbacks list
-            _keysPressed = new bool[NumberOfKeys]; // Initialize key pressed states
+            _hitFeedbacks = new List<HitFeedback>();
+            _keysPressed = new bool[NumberOfKeys]; 
 
-            // Initialize key mapping
             _keyMapping = new Dictionary<int, Keys>
                 {
                     { 0, Keys.D },
@@ -113,7 +109,6 @@ namespace KeyboardMania.States
                 _activeNotesByLane[i] = new List<Note>();
             }
 
-            _missMargin = 2000f; // Example hit margin, adjust as needed, SHIFT TOWARDS THE SCORE MARGINS
 
             LoadBeatmap(_osuFilePath);
         }
@@ -147,13 +142,14 @@ namespace KeyboardMania.States
                 else if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
                 {
                     var hitObject = ParseHitObject(line);
+                    totalNotes++;
                     _hitObjectsByLane[hitObject.Lane].Add(hitObject);
                 }
             }
         }
         private void ParseScoreMargins(Dictionary<string, float> scoreMargins, float overallDifficulty)
         {
-            scoreMargins.Add("MAX", 16);
+            scoreMargins.Add("300g", 16);
             scoreMargins.Add("300", 64 - 3 * overallDifficulty);
             scoreMargins.Add("200", 97 - 3 * overallDifficulty);
             scoreMargins.Add("100", 127 - 3 * overallDifficulty);
@@ -281,12 +277,14 @@ namespace KeyboardMania.States
                 // Update active notes and check for hits (starting with the closest to the hit point)
                 for (int i = activeNotes.Count - 1; i >= 0; i--)
                 {
+                    
                     firstNotePress = true;
                     var note = activeNotes[i];
                     note.Update(gameTime);
                     // Check if note is hit
                     if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
+                        //HandleScoreMargin(note, _hitTimings[i]);
                         activeNotes.RemoveAt(i);
                         _comboCount++; // Increase combo count, FOR SINGLE NOTES COMMENT TO CHECK IF HITS REGISTERED
                         currentNote = currentNote + 1;
@@ -301,7 +299,7 @@ namespace KeyboardMania.States
                     }
                     else if (note.HitObject.IsHeldNote && _keysPressed[lane] && !note._firstPressed && keyboardState.IsKeyUp(_keyMapping[lane]) && IsLowestNoteOnScreen(note, lane) && firstNotePress == true)
                     {
-                        activeNotes.RemoveAt(i);
+                        //HandleScoreMargin(note, _hitTimings[i]);
                         _comboCount += 1;
                         currentNote = currentNote + 1;
                         firstNotePress = false;
@@ -329,7 +327,7 @@ namespace KeyboardMania.States
                 double timeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover; // Adjusted for latency
 
                 // Check if within hit margin based only on time
-                if (Math.Abs(timeDifference) <= _missMargin)
+                if (Math.Abs(timeDifference) <= _scoreMargins["50"])
                 {
                     // Hit registered (mainly for debugging)
                     _hitTimings.Add(timeDifference);
@@ -359,7 +357,7 @@ namespace KeyboardMania.States
                     double holdDuration = note._holdStartTime - (note.HitObject.StartTime + note.HitObject.HoldDuration);
                     double endTimeDifference = _currentTime - (note._holdStartTime + note.HitObject.HoldDuration); // change the algorithm here, compare end time difference to the first initial input time
 
-                    if (Math.Abs(holdDuration - note.HitObject.HoldDuration) <= _missMargin && Math.Abs(endTimeDifference) <= _missMargin)
+                    if (Math.Abs(holdDuration - note.HitObject.HoldDuration) <= _scoreMargins["50"] && Math.Abs(endTimeDifference) <= _scoreMargins["50"])
                     {
                         note.CompleteHold();
                         _comboCount++; // Increment the combo count by one for hitting the note
@@ -469,6 +467,57 @@ namespace KeyboardMania.States
             }
             return true;
         }
+        private void HandleScoreMargin(Note note, double timeDifference)
+        {
+            int hitValue = 0;
+            int hitBonusValue = 0;
+            int hitBonus = 0;
+            int hitPunishment = 0;
+
+            if (Math.Abs(timeDifference) <= _scoreMargins["300g"])
+            {
+                hitValue = 320;
+                hitBonusValue = 32;
+                hitBonus = 2;
+            }
+            else if (Math.Abs(timeDifference) <= _scoreMargins["300"])
+            {
+                hitValue = 300;
+                hitBonusValue = 32;
+                hitBonus = 1;
+            }
+            else if (Math.Abs(timeDifference) <= _scoreMargins["200"])
+            {
+                hitValue = 200;
+                hitBonusValue = 16;
+                hitPunishment = 8;
+            }
+            else if (Math.Abs(timeDifference) <= _scoreMargins["100"])
+            {
+                hitValue = 100;
+                hitBonusValue = 8;
+                hitPunishment = 24;
+            }
+            else if (Math.Abs(timeDifference) <= _scoreMargins["50"])
+            {
+                hitValue = 50;
+                hitBonusValue = 4;
+                hitPunishment = 44;
+            }
+            else
+            {
+                hitValue = 0;
+                hitBonusValue = 0;
+                hitPunishment = int.MaxValue;
+            }
+            
+
+            double baseScore = (1000000 * 0.5 / totalNotes) * (hitValue / 320.0);
+            double bonus = Math.Clamp(hitBonus - hitPunishment, 0, 100); //clamp function is to prevent it from escaping the range 0-100
+            double bonusScore = (1000000 * 0.5 / totalNotes) * (hitBonusValue * Math.Sqrt(bonus) / 320.0);
+
+            score += (int)(baseScore + bonusScore);
+        }
     }
 
     public class HitObject
@@ -513,13 +562,11 @@ namespace KeyboardMania.States
         public void FailHold()
         {
             _isHeld = false;
-            Console.WriteLine("Hold note failed!");
         }
 
         public void CompleteHold()
         {
             _isHeld = false;
-            Console.WriteLine("Hold note successful!");
         }
 
         public override void Update(GameTime gameTime)
