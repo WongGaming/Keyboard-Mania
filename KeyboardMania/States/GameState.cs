@@ -165,7 +165,7 @@ namespace KeyboardMania.States
             var parts = line.Split(',');
             int x = int.Parse(parts[0]);
             double startTime = double.Parse(parts[2]);
-            int endTime = int.Parse(parts[5].Split(':')[0]);
+            int endTime = (int)Math.Floor(double.Parse(parts[5].Split(':')[0]));
 
             int lane = x / 128;
             bool isHeldNote = endTime > startTime;
