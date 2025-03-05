@@ -74,6 +74,11 @@ namespace KeyboardMania.States
 
             settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
             var parseSkinSettings = new ParseSkinSettings(_content);
+            if (!File.Exists(settingsFilePath))
+            {
+                var instantiateSettings = new InstantiateSettings();
+                instantiateSettings.InitialiseSettings(settingsFilePath);
+            }
             parseSkinSettings.ParseNoteCurrentSettings(settingsFilePath, _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentTextures);
 
             //ADD PARSE HIT SETTINGS AFTER PARSE SKIN SETTINGS
