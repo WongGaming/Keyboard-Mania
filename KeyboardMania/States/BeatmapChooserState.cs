@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using KeyboardMania.Controls;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -18,6 +19,7 @@ namespace KeyboardMania.States
 {
     internal class BeatmapChooserState : State
     {
+        private List<Component> _components;
         private string _rootDirectory;
         private List<string> _folders;
         private int _selectedItem; //currently selected folder
@@ -36,8 +38,37 @@ namespace KeyboardMania.States
             _beatmaps = new List<string>();
             LoadFolders();
             GetBeatmaps();
-        }
+            var buttonTexture = _content.Load<Texture2D>("Controls/Button");
+            int buttonSpacing = 50;
+            var buttonFont = _content.Load<SpriteFont>("Fonts/Font");
+            var playGameButton = new Button(buttonTexture, buttonFont)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 1 * buttonSpacing),
+                Text = "Play",
+            };
 
+            playGameButton.Click += PlayGameButton_Click;
+
+            var returnButton = new Button(buttonTexture, buttonFont)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 2 * buttonSpacing),
+                Text = "Return",
+            };
+            returnButton.Click += ReturnButton_Click;
+            _components = new List<Component>()
+            {
+                playGameButton,
+                returnButton
+            };
+        }
+        private void PlayGameButton_Click(object sender, EventArgs e)
+        {
+            _game.ChangeState(new GameState(_game, _graphicsDevice, _content, _beatmaps[_selectedItem], LookForMp3File()));
+        }
+        private void ReturnButton_Click(object sender, EventArgs e)
+        {
+           _game.ChangeState(new MenuState(_game, _graphicsDevice, _content));
+        }
         private void LoadFolders()
         {
             _folders.Clear();
@@ -110,6 +141,10 @@ namespace KeyboardMania.States
         public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             spriteBatch.Begin();
+            foreach (var component in _components)
+            {
+                component.Draw(gameTime, spriteBatch);
+            }
             for (int i = 0; i < _beatmaps.Count; i++)
             {
                 if (i == _selectedItem)
@@ -125,13 +160,13 @@ namespace KeyboardMania.States
             spriteBatch.End();
         }
 
-        public override void PostUpdate(GameTime gameTime)
-        {
-        }
-
         public override void Update(GameTime gameTime)
         {
             HandleInput();
+            foreach (var component in _components)
+            {
+                component.Update(gameTime);
+            }
         }
     }
 }

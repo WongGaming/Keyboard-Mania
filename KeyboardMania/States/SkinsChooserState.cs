@@ -205,7 +205,7 @@ namespace KeyboardMania.States
                 i = i + 1;
             }
 
-        }
+        }   
         public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             spriteBatch.Begin();
@@ -247,10 +247,6 @@ namespace KeyboardMania.States
             spriteBatch.End();
         }
 
-        public override void PostUpdate(GameTime gameTime)
-        {
-
-        }
         bool firstPress = true;
         private void HandleInput()
         {

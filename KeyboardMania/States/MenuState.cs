@@ -21,7 +21,6 @@ namespace KeyboardMania.States
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             int buttonSpacing = 50;
             var buttonFont = _content.Load<SpriteFont>("Fonts/Font");
-            // Setup components
             var playGameButton = new Button(buttonTexture, buttonFont)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 1 * buttonSpacing),
@@ -64,16 +63,12 @@ namespace KeyboardMania.States
         {
             spriteBatch.Begin();
 
-            // Define a scale factor to shrink the texture
             float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
-            // Center the texture on the screen
             Vector2 position = new Vector2((_graphicsDevice.Viewport.Width - (_logo.Width * logoScale)) / 2,(_graphicsDevice.Viewport.Height - (_logo.Height * logoScale)) / 2 - (_graphicsDevice.Viewport.Height / 4));
 
 
-            // Draw the texture with the shrink scale
             spriteBatch.Draw(_logo, position, null, Color.White, 0f, Vector2.Zero, logoScale, SpriteEffects.None, 0f);
 
-            // Draw components (buttons)
             foreach (var component in _components)
             {
                 component.Draw(gameTime, spriteBatch);
@@ -97,11 +92,6 @@ namespace KeyboardMania.States
         {
             _game.ChangeState(new OptionsMenuState(_game, _graphicsDevice, _content));
         }
-
-        public override void PostUpdate(GameTime gameTime)
-        {
-        }
-
         public override void Update(GameTime gameTime)
         {
             foreach (var component in _components)

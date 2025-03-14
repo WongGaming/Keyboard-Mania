@@ -99,12 +99,6 @@ namespace KeyboardMania.States
 
             spriteBatch.End();
         }
-
-    public override void PostUpdate(GameTime gameTime)
-    {
-
-    }
-
     public override void Update(GameTime gameTime)
     {
             foreach (var component in _components)

@@ -86,7 +86,6 @@ namespace KeyboardMania
 
             // Update the current state
             _currentState.Update(gameTime);
-            _currentState.PostUpdate(gameTime);
 
             // Handle input for full-screen toggle
             var keyboardState = Keyboard.GetState();
