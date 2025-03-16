@@ -39,8 +39,10 @@ namespace KeyboardMania.States
         #endregion
 
         #region HitTextures
-        private List<Texture2D> _hitTexture = new List<Texture2D>();
+        private List<Texture2D> _allHitTextures = new List<Texture2D>();
         private List<string> _currentHitTextures = new List<string>();
+        private Texture2D _hitTexture;
+        private double _endHitTextureTime;
         #endregion
 
         #region GameplaySettings
@@ -97,7 +99,7 @@ namespace KeyboardMania.States
                 instantiateSettings.InitialiseSettings(settingsFilePath);
             }
             parseSkinSettings.ParseNoteCurrentSettings(settingsFilePath, _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentNoteTextures);
-            parseSkinSettings.ParseHitCurrentSettings(settingsFilePath, _rootDirectory, _content, _hitTexture, _currentHitTextures);
+            parseSkinSettings.ParseHitCurrentSettings(settingsFilePath, _rootDirectory, _content, _allHitTextures, _currentHitTextures);
 
             _mp3Player = new Mp3Player(_mp3FilePath);
 
@@ -179,6 +181,7 @@ namespace KeyboardMania.States
             scoreMargins.Add("200", 97 - 3 * overallDifficulty);
             scoreMargins.Add("100", 127 - 3 * overallDifficulty);
             scoreMargins.Add("50", 151 - 3 * overallDifficulty);
+            scoreMargins.Add("0", 200 - 3 * overallDifficulty);
         }
         private HitObject ParseHitObject(string line)
         {
@@ -210,7 +213,7 @@ namespace KeyboardMania.States
             // Start the song if it's the first update frame
             if (_currentTime == 0)
             {
-                _mp3Player.Play();
+                //_mp3Player.Play();
             }
 
             MouseState mouseState = Mouse.GetState();
@@ -309,11 +312,11 @@ namespace KeyboardMania.States
                     // Check if note is hit
                     if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
-                        //HandleScoreMargin(note, _hitTimings[i]);
-                        activeNotes.RemoveAt(i);
                         _comboCount++; // Increase combo count, FOR SINGLE NOTES COMMENT TO CHECK IF HITS REGISTERED
                         currentNote = currentNote + 1;
                         firstNotePress = false;
+                        HandleScoreMargin(note, _hitTimings[_hitTimings.Count-1]);
+                        activeNotes.RemoveAt(i);
                     }
                     else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
@@ -321,10 +324,13 @@ namespace KeyboardMania.States
                         _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
                         currentNote = currentNote + 1;
                         firstNotePress = false;
+                        _hitTexture = _allHitTextures[0];
+                        _endHitTextureTime = _currentTime + 500;
                     }
                     else if (note.HitObject.IsHeldNote && _keysPressed[lane] && !note._firstPressed && keyboardState.IsKeyUp(_keyMapping[lane]) && IsLowestNoteOnScreen(note, lane) && firstNotePress == true)
                     {
-                        HandleScoreMargin(note, _hitTimings[i]);
+                        HandleScoreMargin(note, _hitTimings[_hitTimings.Count - 1]);
+                        activeNotes.RemoveAt(i);
                         _comboCount += 1;
                         currentNote = currentNote + 1;
                         firstNotePress = false;
@@ -335,6 +341,8 @@ namespace KeyboardMania.States
                         _comboCount = 0; // Reset combo count, IF HOLD NOTE IS MISSED (OFFSCREEN) (THIS ONLY CHECKS IF THE END PASSES THE FRONT (CURRENTLY IGNORES THE FRONT)
                         currentNote = currentNote + 1;
                         firstNotePress = false;
+                        _hitTexture = _allHitTextures[0];
+                        _endHitTextureTime = _currentTime + 500;
                     }
                 }
             }
@@ -351,13 +359,19 @@ namespace KeyboardMania.States
                 // Calculate the time difference
                 double timeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover; // Adjusted for latency
 
+                if (Math.Abs(timeDifference) <= _scoreMargins["0"] && Math.Abs(timeDifference) > _scoreMargins["50"])
+                {
+                    _hitTimings.Add(timeDifference);
+                    _hitTimingsSum += timeDifference;
+                    _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count;
+                    _comboCount = -1;
+                    return true;
+                }
                 if (Math.Abs(timeDifference) <= _scoreMargins["50"])
                 {
                     _hitTimings.Add(timeDifference);
                     _hitTimingsSum += timeDifference;
                     _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count;
-
-                    HandleScoreMargin(note, timeDifference);
                     return true;
                 }
             }
@@ -380,7 +394,7 @@ namespace KeyboardMania.States
                     {
                         note.CompleteHold();
                         _comboCount++;
-                        HandleScoreMargin(note, endTimeDifference);
+                        //HandleScoreMargin(note, endTimeDifference);
                         return true;
                     }
                     else
@@ -442,7 +456,10 @@ namespace KeyboardMania.States
             {
                 spriteBatch.Draw(_keyTexture, keyPosition, null, Color.White, 0f, Vector2.Zero, new Vector2(_keyScaleFactor), SpriteEffects.None, 0f);
             }
-            spriteBatch.Draw(_hitTexture[0], new Vector2(_keyPositions[2].X - _hitTexture[0].Width/3,(_screenHeight - (_keyTexture.Height * _keyScaleFactor))/2), null, Color.White, 0f, Vector2.Zero, new Vector2(0.5f), SpriteEffects.None, 0f);
+            if(_hitTexture != null && (_currentTime < _endHitTextureTime))
+            {
+                spriteBatch.Draw(_hitTexture, new Vector2(_keyPositions[2].X - _hitTexture.Width/3,(_screenHeight - (_keyTexture.Height * _keyScaleFactor))/2), null, Color.White, 0f, Vector2.Zero, new Vector2(0.5f), SpriteEffects.None, 0f);
+            }
 
             spriteBatch.End();
         }
@@ -486,36 +503,48 @@ namespace KeyboardMania.States
                 hitValue = 320;
                 hitBonusValue = 32;
                 hitBonus = 2;
+                _hitTexture = _allHitTextures[5];
+                _endHitTextureTime = _currentTime + 500;
             }
             else if (Math.Abs(timeDifference) <= _scoreMargins["300"])
             {
                 hitValue = 300;
                 hitBonusValue = 32;
                 hitBonus = 1;
+                _hitTexture = _allHitTextures[4];
+                _endHitTextureTime = _currentTime + 500;
             }
             else if (Math.Abs(timeDifference) <= _scoreMargins["200"])
             {
                 hitValue = 200;
                 hitBonusValue = 16;
                 hitPunishment = 8;
+                _hitTexture = _allHitTextures[3];
+                _endHitTextureTime = _currentTime + 500;
             }
             else if (Math.Abs(timeDifference) <= _scoreMargins["100"])
             {
                 hitValue = 100;
                 hitBonusValue = 8;
                 hitPunishment = 24;
+                _hitTexture = _allHitTextures[2];
+                _endHitTextureTime = _currentTime + 500;
             }
             else if (Math.Abs(timeDifference) <= _scoreMargins["50"])
             {
                 hitValue = 50;
                 hitBonusValue = 4;
                 hitPunishment = 44;
+                _hitTexture = _allHitTextures[1];
+                _endHitTextureTime = _currentTime + 500;
             }
             else
             {
                 hitValue = 0;
                 hitBonusValue = 0;
                 hitPunishment = int.MaxValue;
+                _hitTexture = _allHitTextures[0];
+                _endHitTextureTime = _currentTime + 500;
             }
             
 
