@@ -15,13 +15,34 @@ namespace KeyboardMania.States
 {
     public class GameState : State
     {
+
+        private Texture2D _hitFeedbackTexture;
+        private double _currentTime;
+        private int _screenWidth;
+        private int _screenHeight;
         private int _comboCount = 0;
         private const int NumberOfKeys = 4;
         private int totalNotes = 0;
         private Mp3Player _mp3Player;
+        private string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
+        //work out an algorithm to calculate the scale
+        
+        private List<Vector2> _keyPositions;
+        private float _keyWidth;
+        private Dictionary<String, float> _scoreMargins = new Dictionary<String, float>();
+        private string settingsFilePath;
+        private float _hitPointY; // Y position of the hit point
+        private bool[] _keysPressed; // to track if a key was already pressed
+        private float _overallDifficulty;
+        //adjusts the actual difficulty of hitmargins
+        private List<double> _hitTimings = new List<double>();
+        // Track hit timings to adjust input lag
+        private double _hitTimingsSum = 0;
+        private double _hitTimingsAverage = 0;
+        private int _previousScrollValue = 0; // Store the initial scroll value
+        private bool firstNotePress = false;
 
         private int _score = 0;
-        private int fadeInTiming = 200;
 
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
         private Dictionary<int, List<Note>> _activeNotesByLane;
@@ -32,6 +53,7 @@ namespace KeyboardMania.States
 
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
         private Texture2D _keyTexture;
+
         #region NoteTextures
         private List<Texture2D> _noteTexture = new List<Texture2D>();
         private List<Texture2D> _holdTexture = new List<Texture2D>();
@@ -50,6 +72,8 @@ namespace KeyboardMania.States
         private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
         private Dictionary<int, Keys> _keyMapping; // Map lanes to keys
         private double _latencyRemover = 222.92825; // Enter the average latency experienced
+        private int fadeInTiming = 0;
+        private float _audioLatency = 0;
 
         #endregion
 
@@ -57,31 +81,7 @@ namespace KeyboardMania.States
         private float _noteScaleFactor;
         private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
         #endregion
-
-        private Texture2D _hitFeedbackTexture;
-        private double _currentTime;
-        private int _screenWidth;
-        private int _screenHeight;
         
-        private string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
-        //work out an algorithm to calculate the scale
-        
-        private List<Vector2> _keyPositions;
-        private float _keyWidth;
-        private Dictionary<String, float> _scoreMargins = new Dictionary<String, float>();
-        private string settingsFilePath;
-        //REPLACE EVERYTHING ABOUT HIT MARGIN WITH _SCORE MARGIN
-        private float _hitPointY; // Y position of the hit point
-        private bool[] _keysPressed; // To track if a key was already pressed
-        private float _overallDifficulty;
-        //adjusts the actual difficulty of hitmargins
-        private List<double> _hitTimings = new List<double>();
-        // Track hit timings to adjust input lag
-        private double _hitTimingsSum = 0;
-        private double _hitTimingsAverage = 0;
-        private float _audioLatency = 0;
-        private int _previousScrollValue = 0; // Store the initial scroll value
-        private bool firstNotePress = false;
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
             : base(game, graphicsDevice, content)
         {
@@ -210,7 +210,7 @@ namespace KeyboardMania.States
         public override void Update(GameTime gameTime)
         {
             // Start the song if it's the first update frame
-            if (_currentTime > fadeInTiming)
+            if (_currentTime + _audioLatency > fadeInTiming)
             {
                 _mp3Player.Play();
             }
