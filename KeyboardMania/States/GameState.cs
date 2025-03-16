@@ -22,11 +22,12 @@ namespace KeyboardMania.States
         private int _screenHeight;
         private int _comboCount = 0;
         private const int NumberOfKeys = 4;
+        private int allCurrentNotes = 0;
         private int totalNotes = 0;
         private Mp3Player _mp3Player;
         private string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
         //work out an algorithm to calculate the scale
-        
+        private double finalEndTiming = 0;
         private List<Vector2> _keyPositions;
         private float _keyWidth;
         private Dictionary<String, float> _scoreMargins = new Dictionary<String, float>();
@@ -168,8 +169,9 @@ namespace KeyboardMania.States
                 else if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
                 {
                     var hitObject = ParseHitObject(line);
-                    totalNotes++;
+                    allCurrentNotes++;
                     _hitObjectsByLane[hitObject.Lane].Add(hitObject);
+                    totalNotes++;
                 }
             }
         }
@@ -303,7 +305,10 @@ namespace KeyboardMania.States
                 // Update active notes and check for hits (starting with the closest to the hit point)
                 for (int i = activeNotes.Count - 1; i >= 0; i--)
                 {
-                    
+                    if (currentNote == allCurrentNotes)
+                    {
+                        finalEndTiming = activeNotes[i].HitObject.EndTime;
+                    }
                     firstNotePress = true;
                     var note = activeNotes[i];
                     note.Update(gameTime);
@@ -348,6 +353,10 @@ namespace KeyboardMania.States
                 }
             }
             HandleKeyReleases(); // Handle key releases for feedback
+            if ((totalNotes == allCurrentNotes) && (_currentTime == finalEndTiming + 3000))
+            {
+                _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content));
+            }
         }
         private bool CheckForHit(Note note, float hitPointY, int lane)
         {
@@ -550,9 +559,9 @@ namespace KeyboardMania.States
             }
             
 
-            double baseScore = (maxScore * 0.5 / totalNotes) * (hitValue / 320.0);
+            double baseScore = (maxScore * 0.5 / allCurrentNotes) * (hitValue / 320.0);
             double bonus = Math.Clamp(hitBonus - hitPunishment, 0, 100); //clamp function is to prevent it from escaping the range 0-100
-            double bonusScore = (maxScore * 0.5 / totalNotes) * (hitBonusValue * Math.Sqrt(bonus) / 320.0);
+            double bonusScore = (maxScore * 0.5 / allCurrentNotes) * (hitBonusValue * Math.Sqrt(bonus) / 320.0);
 
             _score += (int)(baseScore + bonusScore);
         }
