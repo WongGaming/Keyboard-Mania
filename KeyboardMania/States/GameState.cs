@@ -24,7 +24,7 @@ namespace KeyboardMania.States
 
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
         private Dictionary<int, List<Note>> _activeNotesByLane;
-        private Dictionary<int, List<Texture2D>> _activeHitTextures;
+        private Dictionary<int, List<Texture2D>> _activeHitTexture;
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
         private Texture2D _keyTexture;
         #region NoteTextures
@@ -47,17 +47,18 @@ namespace KeyboardMania.States
         #endregion
 
         #region DisplaySettings
-
+        private float _noteScaleFactor;
+        private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
         #endregion
 
         private Texture2D _hitFeedbackTexture;
         private double _currentTime;
         private int _screenWidth;
         private int _screenHeight;
-        private float _noteScaleFactor;
+        
         private string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
         //work out an algorithm to calculate the scale
-        private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
+        
         private List<Vector2> _keyPositions;
         private float _keyWidth;
         private Dictionary<String, float> _scoreMargins = new Dictionary<String, float>();
