@@ -25,6 +25,10 @@ namespace KeyboardMania.States
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
         private Dictionary<int, List<Note>> _activeNotesByLane;
         private Dictionary<int, List<Texture2D>> _activeHitTexture;
+        private List<Texture2D> _numberTextures;
+        private List<Texture2D> _comboTexture;
+        private List<Texture2D> _scoreTexture;
+
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
         private Texture2D _keyTexture;
         #region NoteTextures
@@ -125,7 +129,12 @@ namespace KeyboardMania.States
                 _activeNotesByLane[i] = new List<Note>();
             }
 
-
+            _numberTextures = new List<Texture2D>();
+            for(int i = 0; i <= 9; i++)
+            {
+                string currentTexture = "Controls/default-" + i;
+                _numberTextures.Add(_content.Load<Texture2D>(currentTexture));
+            }
             LoadBeatmap(_osuFilePath);
         }
 
@@ -405,7 +414,6 @@ namespace KeyboardMania.States
             _graphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
             spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_comboCount), new Vector2(100, 1000), Color.Red); //bugtesting combo counter Vector2(x, 2000) for home pc, Vector2(x,1000) for laptop
-
             foreach (var laneNotes in _activeNotesByLane.Values)
             {
 
@@ -434,6 +442,7 @@ namespace KeyboardMania.States
             {
                 spriteBatch.Draw(_keyTexture, keyPosition, null, Color.White, 0f, Vector2.Zero, new Vector2(_keyScaleFactor), SpriteEffects.None, 0f);
             }
+            spriteBatch.Draw(_hitTexture[0], new Vector2(_keyPositions[2].X - _hitTexture[0].Width/3,(_screenHeight - (_keyTexture.Height * _keyScaleFactor))/2), null, Color.White, 0f, Vector2.Zero, new Vector2(0.5f), SpriteEffects.None, 0f);
 
             spriteBatch.End();
         }
