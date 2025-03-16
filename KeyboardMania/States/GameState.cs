@@ -15,11 +15,12 @@ namespace KeyboardMania.States
 {
     public class GameState : State
     {
+        private int _comboCount = 0;
         private const int NumberOfKeys = 4;
         private int totalNotes = 0;
         private Mp3Player _mp3Player;
 
-        private int score = 0;
+        private int _score = 0;
         private int fadeInTiming = 0;
 
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
@@ -72,7 +73,6 @@ namespace KeyboardMania.States
         //REPLACE EVERYTHING ABOUT HIT MARGIN WITH _SCORE MARGIN
         private float _hitPointY; // Y position of the hit point
         private bool[] _keysPressed; // To track if a key was already pressed
-        private int _comboCount = 0;
         private float _overallDifficulty;
         //adjusts the actual difficulty of hitmargins
         private List<double> _hitTimings = new List<double>();
@@ -329,11 +329,14 @@ namespace KeyboardMania.States
                     }
                     else if (note.HitObject.IsHeldNote && _keysPressed[lane] && !note._firstPressed && keyboardState.IsKeyUp(_keyMapping[lane]) && IsLowestNoteOnScreen(note, lane) && firstNotePress == true)
                     {
+                        if (Math.Abs(_hitTimings[_hitTimings.Count - 1]) < _scoreMargins["50"])
+                        {
                         HandleScoreMargin(note, _hitTimings[_hitTimings.Count - 1]);
                         activeNotes.RemoveAt(i);
                         _comboCount += 1;
                         currentNote = currentNote + 1;
                         firstNotePress = false;
+                        }
                     }
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note) && firstNotePress == true)
                     {
@@ -348,7 +351,6 @@ namespace KeyboardMania.States
             }
             HandleKeyReleases(); // Handle key releases for feedback
         }
-
         private bool CheckForHit(Note note, float hitPointY, int lane)
         {
             KeyboardState keyboardState = Keyboard.GetState();
@@ -428,6 +430,7 @@ namespace KeyboardMania.States
             _graphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
             spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_comboCount), new Vector2(100, 1000), Color.Red); //bugtesting combo counter Vector2(x, 2000) for home pc, Vector2(x,1000) for laptop
+            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_score), new Vector2(100, 1200), Color.Red);
             foreach (var laneNotes in _activeNotesByLane.Values)
             {
 
@@ -497,6 +500,7 @@ namespace KeyboardMania.States
             int hitBonusValue = 0;
             int hitBonus = 0;
             int hitPunishment = 0;
+            int maxScore = 1000000;
 
             if (Math.Abs(timeDifference) <= _scoreMargins["300g"])
             {
@@ -548,11 +552,11 @@ namespace KeyboardMania.States
             }
             
 
-            double baseScore = (1000000 * 0.5 / totalNotes) * (hitValue / 320.0);
+            double baseScore = (maxScore * 0.5 / totalNotes) * (hitValue / 320.0);
             double bonus = Math.Clamp(hitBonus - hitPunishment, 0, 100); //clamp function is to prevent it from escaping the range 0-100
-            double bonusScore = (1000000 * 0.5 / totalNotes) * (hitBonusValue * Math.Sqrt(bonus) / 320.0);
+            double bonusScore = (maxScore * 0.5 / totalNotes) * (hitBonusValue * Math.Sqrt(bonus) / 320.0);
 
-            score += (int)(baseScore + bonusScore);
+            _score += (int)(baseScore + bonusScore);
         }
     }
 }
