@@ -21,7 +21,7 @@ namespace KeyboardMania.States
         private Mp3Player _mp3Player;
 
         private int _score = 0;
-        private int fadeInTiming = 2000;
+        private int fadeInTiming = 200;
 
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
         private Dictionary<int, List<Note>> _activeNotesByLane;
