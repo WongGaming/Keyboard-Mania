@@ -21,7 +21,7 @@ namespace KeyboardMania.States
         private Mp3Player _mp3Player;
 
         private int _score = 0;
-        private int fadeInTiming = 0;
+        private int fadeInTiming = 2000;
 
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
         private Dictionary<int, List<Note>> _activeNotesByLane;
@@ -80,7 +80,6 @@ namespace KeyboardMania.States
         private double _hitTimingsSum = 0;
         private double _hitTimingsAverage = 0;
         private float _audioLatency = 0;
-        private bool _mp3Played = false;
         private int _previousScrollValue = 0; // Store the initial scroll value
         private bool firstNotePress = false;
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
@@ -187,8 +186,8 @@ namespace KeyboardMania.States
         {
             var parts = line.Split(',');
             int x = int.Parse(parts[0]);
-            double startTime = double.Parse(parts[2]);
-            int endTime = (int)Math.Floor(double.Parse(parts[5].Split(':')[0]));
+            double startTime = double.Parse(parts[2]) + fadeInTiming;
+            int endTime = (int)Math.Floor(double.Parse(parts[5].Split(':')[0]) + fadeInTiming);
 
             int lane = x / 128;
             bool isHeldNote = endTime > startTime;
@@ -211,9 +210,9 @@ namespace KeyboardMania.States
         public override void Update(GameTime gameTime)
         {
             // Start the song if it's the first update frame
-            if (_currentTime == 0)
+            if (_currentTime > fadeInTiming)
             {
-                //_mp3Player.Play();
+                _mp3Player.Play();
             }
 
             MouseState mouseState = Mouse.GetState();
@@ -274,10 +273,9 @@ namespace KeyboardMania.States
                 var hitObjects = _hitObjectsByLane[lane];
                 var activeNotes = _activeNotesByLane[lane];
 
-                // Sort active notes by their Y-position (lower notes first)
+                // sort active notes by their Y-position (by lower notes first)
                 activeNotes.Sort((n1, n2) => n1.Position.Y.CompareTo(n2.Position.Y));
 
-                // Generate new notes
                 for (int i = hitObjects.Count - 1; i >= 0; i--)
                 {
                     var hitObject = hitObjects[i];
@@ -292,13 +290,13 @@ namespace KeyboardMania.States
                         float xPosition = (_screenWidth / 2) - (_keyWidth * NumberOfKeys / 2) + (hitObject.Lane * _keyWidth);
                         var note = new Note(_content, noteTexture, hitObject.IsHeldNote, _lengthTexture)
                         {
-                            Position = new Vector2(xPosition, -noteTexture[hitObject.Lane].Height * _noteScaleFactor), // Start position above the screen
+                            Position = new Vector2(xPosition, -noteTexture[hitObject.Lane].Height * _noteScaleFactor), //the start position above the screen
                             HitObject = hitObject,
                             Scale = _noteScaleFactor,
                             Velocity = new Vector2(0, _noteVelocity)
                         };
                         activeNotes.Add(note);
-                        hitObjects.RemoveAt(i); // Remove the note from the hitObjects list once it has spawned
+                        hitObjects.RemoveAt(i); //remove the note from the hitObjects list once it has spawned
                     }
                 }
                 int currentNote = 0;
