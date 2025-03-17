@@ -76,7 +76,7 @@ namespace KeyboardMania.States
         #endregion
 
         #region DisplaySettings
-        private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
+        private float _keyScaleFactor = 1f; //2.5 home pc 1f laptop 
         private float _comboScaleFactor = 1.0f;
         private float _scoreScaleFactor = 2.0f;
         private float _hitScaleFactor = 1.5f;
@@ -114,7 +114,7 @@ namespace KeyboardMania.States
                 var instantiateSettings = new InstantiateSettings();
                 instantiateSettings.InitialiseSettings(settingsFilePath);
             }
-            parseDisplaySettings.ParseDisplayGameplayScaling(settingsFilePath, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor);
+            parseDisplaySettings.ParseDisplayGameplayScaling(settingsFilePath, ref _keyScaleFactor, ref _comboScaleFactor, ref _scoreScaleFactor, ref _hitScaleFactor);
             _mp3Player = new Mp3Player(_mp3FilePath);
 
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;
@@ -144,7 +144,7 @@ namespace KeyboardMania.States
                 _numberTextures.Add(_content.Load<Texture2D>(currentTexture));
             }
             var parseGameplaySettings = new ParseGameplaySettings(_content);
-            parseGameplaySettings.ParseGameplayValues(settingsFilePath, _noteVelocity, _keyMapping, _latencyRemover, fadeInTiming, _audioLatency);
+            parseGameplaySettings.ParseGameplayValues(settingsFilePath, ref _noteVelocity, ref _keyMapping, ref _latencyRemover, ref fadeInTiming, ref _audioLatency);
             LoadBeatmap(_osuFilePath);
         }
 

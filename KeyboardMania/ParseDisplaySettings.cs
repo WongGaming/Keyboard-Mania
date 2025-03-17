@@ -38,7 +38,7 @@ namespace KeyboardMania
                 instantiateSettings.InitialiseDisplay(settingsFilePath);
             }
         }
-        public void ParseDisplayGameplayScaling(string settingsFilePath, float keyScaleFactor, float comboScaleFactor, float scoreScaleFactor, float hitScaleFactor)
+        public void ParseDisplayGameplayScaling(string settingsFilePath, ref float keyScaleFactor,ref float comboScaleFactor, ref float scoreScaleFactor, ref float hitScaleFactor)
         {
             List<bool> parsed = new List<bool>();
             string[] lines = File.ReadAllLines(settingsFilePath);

@@ -28,7 +28,7 @@ namespace KeyboardMania.States
             _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
             var parseDisplaySettings = new ParseDisplaySettings(content);
             parseDisplaySettings.ParseLogoScaling(_settingsFilePath, _logoScale);
-            parseDisplaySettings.ParseDisplayGameplayScaling(_settingsFilePath, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor);
+            parseDisplaySettings.ParseDisplayGameplayScaling(_settingsFilePath, ref _keyScaleFactor,ref _comboScaleFactor,ref _scoreScaleFactor,ref _hitScaleFactor);
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             var buttonFont = _content.Load<SpriteFont>("Fonts/Font");
             int buttonSpacing = 50;

@@ -18,7 +18,7 @@ namespace KeyboardMania
         {
             _content = content;
         }
-        public void ParseGameplayValues(string settingsFilePath, float noteVelocity, Dictionary<int, Keys> keyMapping, double latencyRemover, int fadeInTiming, float audioLatency)
+        public void ParseGameplayValues(string settingsFilePath, ref float noteVelocity, ref Dictionary<int, Keys> keyMapping,ref double latencyRemover,ref int fadeInTiming,ref float audioLatency)
         {
             List<bool> parsed = new List<bool>();
             string[] lines = File.ReadAllLines(settingsFilePath);
