@@ -355,7 +355,7 @@ namespace KeyboardMania.States
             HandleKeyReleases(); // Handle key releases for feedback
             if ((totalNotes == allCurrentNotes) && (_currentTime == finalEndTiming + 3000))
             {
-                _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content));
+                _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, _score));
             }
         }
         private bool CheckForHit(Note note, float hitPointY, int lane)
