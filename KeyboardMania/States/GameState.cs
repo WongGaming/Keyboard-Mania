@@ -365,7 +365,7 @@ namespace KeyboardMania.States
             //if (_currentTime < finalEndTiming + 3000)
             if(_currentTime > finalEndTiming + 3000)
             {
-                _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
+                _game.ChangeState(new AddLeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
             }
         }
         private bool CheckForHit(Note note, float hitPointY, int lane)

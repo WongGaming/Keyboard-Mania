@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace KeyboardMania.States
 {
-    public class LeaderboardState : State
+    public class AddLeaderboardState : State
     {
         private Texture2D _textBoxTexture;
         private int _score;
@@ -23,7 +23,7 @@ namespace KeyboardMania.States
         SpriteFont font;
         private List<Component> _components;
 
-        public LeaderboardState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, int score, string beatmapName)
+        public AddLeaderboardState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, int score, string beatmapName)
         : base(game, graphicsDevice, content)
         {
             font = content.Load<SpriteFont>("Fonts/Font");
