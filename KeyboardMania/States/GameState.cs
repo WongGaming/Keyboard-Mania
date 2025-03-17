@@ -24,6 +24,7 @@ namespace KeyboardMania.States
         private const int NumberOfKeys = 4;
         private int allCurrentNotes = 0;
         private int totalNotes = 0;
+        private Texture2D _keyTexture;
         private Mp3Player _mp3Player;
         private string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
         //work out an algorithm to calculate the scale
@@ -49,7 +50,6 @@ namespace KeyboardMania.States
         private List<Texture2D> _numberTextures;
 
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
-        private Texture2D _keyTexture;
 
         #region NoteTextures
         private List<Texture2D> _noteTexture = new List<Texture2D>();
@@ -355,8 +355,8 @@ namespace KeyboardMania.States
             HandleKeyReleases(); // Handle key releases for feedback
 
             //test below, to instantly call leaderboards
-            if (_currentTime < finalEndTiming + 3000)
-            //if ((totalNotes == allCurrentNotes) && (_currentTime > finalEndTiming + 3000))
+            //if (_currentTime < finalEndTiming + 3000)
+            if ((totalNotes == allCurrentNotes) && (_currentTime > finalEndTiming + 3000))
             {
                 _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
             }

@@ -68,11 +68,11 @@ namespace KeyboardMania.States
         }
         private void DisplaySettingsButton_Click(object sender, EventArgs e)
         {
-  
+            _game.ChangeState(new DisplayChooserState(_game, _graphicsDevice, _content));
         }
         private void GameplaySettingsButton_Click(object sender, EventArgs e)
         {
-
+            _game.ChangeState(new GameplaySettingsState(_game, _graphicsDevice, _content));
         }
         private void ReturnButton_Click(object sender, EventArgs e)
         {
