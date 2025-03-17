@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace KeyboardMania
@@ -77,6 +78,21 @@ namespace KeyboardMania
                     instantiateSettings.InitialiseDisplay(settingsFilePath);
                 }
             }
+        }
+        public void SaveNewSettings(string settingsFilePath, float logoScale, float keyScaleFactor, float comboScaleFactor, float scoreScaleFactor, float hitScaleFactor)
+        {
+            string file = File.ReadAllText(settingsFilePath);
+            List<string> displaySettingsContentList = new List<string>();
+            displaySettingsContentList.Add("[Display Settings]");
+            displaySettingsContentList.Add($"logoscale = {logoScale}");
+            displaySettingsContentList.Add($"keyscale = {keyScaleFactor}");
+            displaySettingsContentList.Add($"comboscale = {comboScaleFactor}");
+            displaySettingsContentList.Add($"scorescale = {scoreScaleFactor}");
+            displaySettingsContentList.Add($"hitscale = {hitScaleFactor}");
+            string displaySettingsContent = string.Join("\n", displaySettingsContentList);
+            file = Regex.Replace(file, @"\[Display Settings\][\s\S]*?\[Gameplay Settings\]", displaySettingsContent + "[Gameplay Settings]");
+            File.WriteAllText(settingsFilePath, file);
+
         }
     }
 }

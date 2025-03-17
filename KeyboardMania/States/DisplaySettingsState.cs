@@ -17,28 +17,46 @@ namespace KeyboardMania.States
     {
         private List<Component> _components;
         private string _settingsFilePath;
+        private float _logoScale;
+        private float _keyScaleFactor;
+        private float _comboScaleFactor;
+        private float _scoreScaleFactor;
+        private float _hitScaleFactor;
         public DisplaySettingsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
             : base(game, graphicsDevice, content)
         {
             _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
+            var parseDisplaySettings = new ParseDisplaySettings(content);
+            parseDisplaySettings.ParseLogoScaling(_settingsFilePath, _logoScale);
+            parseDisplaySettings.ParseDisplayGameplayScaling(_settingsFilePath, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor);
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             var buttonFont = _content.Load<SpriteFont>("Fonts/Font");
             int buttonSpacing = 50;
-
-            var returnButton = new Button(buttonTexture, buttonFont)
+            var saveButton = new Button(buttonTexture, buttonFont)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 1 * buttonSpacing),
-                Text = "Return",
+                Text = "Save",
+            };
+            saveButton.Click += SaveButton_Click;
+            var returnButton = new Button(buttonTexture, buttonFont)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 2 * buttonSpacing),
+                Text = "Return (SAVE FIRST)",
             };
 
             returnButton.Click += ReturnButton_Click;
 
             _components = new List<Component>()
             {
+                saveButton,
                 returnButton
             };
         }
-
+        private void SaveButton_Click(object sender, EventArgs e)
+        {
+            var parseDisplaySettings = new ParseDisplaySettings(_content);
+            parseDisplaySettings.SaveNewSettings(_settingsFilePath, _logoScale, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor);
+        }
         private void ReturnButton_Click(object sender, EventArgs e)
         {
             _game.ChangeState(new OptionsMenuState(_game, _graphicsDevice, _content, _settingsFilePath));

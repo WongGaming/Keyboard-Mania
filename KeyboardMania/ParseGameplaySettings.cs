@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Input;
+using System.Text.RegularExpressions;
 namespace KeyboardMania
 {
     internal class ParseGameplaySettings
@@ -64,6 +65,20 @@ namespace KeyboardMania
                 }
 
             }
+        }
+        public void SaveNewSettings(string settingsFilePath, float noteVelocity, Dictionary<int, Keys> keyMapping, double latencyRemover, int fadeInTiming, float audioLatency)
+        {
+            string file = File.ReadAllText(settingsFilePath);
+            List<string> gameplaySettingsContentList = new List<string>();
+            gameplaySettingsContentList.Add("[Gameplay Settings]");
+            gameplaySettingsContentList.Add($"notevelocity = {noteVelocity}");
+            gameplaySettingsContentList.Add($"keymapping = {keyMapping[0]},{keyMapping[1]},{keyMapping[2]},{keyMapping[3]}");
+            gameplaySettingsContentList.Add($"latencyremover = {latencyRemover}");
+            gameplaySettingsContentList.Add($"fadeintiming = {fadeInTiming}");
+            gameplaySettingsContentList.Add($"audiolatency = {audioLatency}");
+            string gameplaySettingsContent = string.Join("\n", gameplaySettingsContentList);
+            file = Regex.Replace(file, @"\[Gameplay Settings\][\s\S]*?", gameplaySettingsContent);
+            File.WriteAllText(settingsFilePath, file);
         }
     }
 }
