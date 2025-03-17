@@ -54,23 +54,30 @@ namespace KeyboardMania.States
                 Text = "Save",
             };
             saveButton.Click += SaveButton_Click;
-            var returnButton = new Button(buttonTexture, buttonFont)
+            var defaultResetButton = new Button(buttonTexture, _font)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 2 * buttonSpacing),
+                Text = "Reset to Default",
+            };
+            defaultResetButton.Click += DefaultResetButton_Click;
+            var returnButton = new Button(buttonTexture, buttonFont)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 3 * buttonSpacing),
                 Text = "Return (SAVE FIRST)",
             };
             _textBoxRectangle = new List<Rectangle>
             {
-                new Rectangle(100, 150, 200, 30),
-                new Rectangle(100, 200, 200, 30),
-                new Rectangle(100,250,200,30),
-                new Rectangle(100, 300, 200, 30),
-                new Rectangle(100, 350, 200, 30)
+                new Rectangle(300, 150, 200, 30),
+                new Rectangle(300, 200, 200, 30),
+                new Rectangle(300,250,200,30),
+                new Rectangle(300, 300, 200, 30),
+                new Rectangle(300, 350, 200, 30)
             };
             returnButton.Click += ReturnButton_Click;
             _components = new List<Component>()
             {
                 saveButton,
+                defaultResetButton,
                 returnButton
             };
             _textBoxText = new List<string>();
@@ -114,6 +121,10 @@ namespace KeyboardMania.States
         {
             var parseDisplaySettings = new ParseDisplaySettings(_content);
             parseDisplaySettings.SaveNewSettings(_settingsFilePath, _logoScale, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor);
+        }
+        private void DefaultResetButton_Click(object sender, EventArgs e)
+        {
+
         }
         private void ReturnButton_Click(object sender, EventArgs e)
         {
