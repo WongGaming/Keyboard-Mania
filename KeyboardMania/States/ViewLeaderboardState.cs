@@ -15,11 +15,12 @@ namespace KeyboardMania.States
         private SpriteFont _font;
         private string _leaderboardDirectory;
         private List<string> _leaderboardLines = new List<string>();
+        private string _leaderboard;
         public ViewLeaderboardState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string saveDirectory, string leaderboard)
             : base(game, graphicsDevice, content)
         {
+            _leaderboard = leaderboard;
             _leaderboardDirectory = saveDirectory + "\\" + leaderboard;
-            // Initialize components for the ViewLeaderboardState
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             var buttonFont = _content.Load<SpriteFont>("Fonts/Font");
             int buttonSpacing = 50;
@@ -54,7 +55,7 @@ namespace KeyboardMania.States
         }
         private void EditButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new EditLeaderboardState(_game, _graphicsDevice, _content, _leaderboardDirectory));
+            _game.ChangeState(new EditLeaderboardState(_game, _graphicsDevice, _content, _leaderboardDirectory, _leaderboard));
         }
         private void ReturnButton_Click(object sender, EventArgs e)
         {
@@ -69,6 +70,7 @@ namespace KeyboardMania.States
             {
                 component.Draw(gameTime, spriteBatch);
             }
+            spriteBatch.DrawString(_font, $"Leaderboard - {_leaderboard}", new Vector2(100, 50), Color.White);
             int y = 100;
             foreach (var line in _leaderboardLines)
             {
