@@ -15,9 +15,12 @@ namespace KeyboardMania
             if (!File.Exists(settingsFilePath))
             {
                 string settingsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania");
+                if (!Directory.Exists(settingsDirectory))
+                {
                 Directory.CreateDirectory(settingsDirectory);
+                }
                 settingsFilePath = Path.Combine(settingsDirectory, "Settings.txt");
-                File.Create(settingsFilePath).Dispose();
+                File.Create(settingsFilePath);
             }
 
             #region SkinSettingsInstantiation

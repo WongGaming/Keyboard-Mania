@@ -15,7 +15,7 @@ namespace KeyboardMania.States
 {
     public class GameState : State
     {
-
+        private string _beatmapName;
         private Texture2D _hitFeedbackTexture;
         private double _currentTime;
         private int _screenWidth;
@@ -39,7 +39,6 @@ namespace KeyboardMania.States
         private List<double> _hitTimings = new List<double>();
         // Track hit timings to adjust input lag
         private double _hitTimingsSum = 0;
-        private double _hitTimingsAverage = 0;
         private int _previousScrollValue = 0; // Store the initial scroll value
         private bool firstNotePress = false;
 
@@ -47,10 +46,7 @@ namespace KeyboardMania.States
 
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
         private Dictionary<int, List<Note>> _activeNotesByLane;
-        private Dictionary<int, List<Texture2D>> _activeHitTexture;
         private List<Texture2D> _numberTextures;
-        private List<Texture2D> _comboTexture;
-        private List<Texture2D> _scoreTexture;
 
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
         private Texture2D _keyTexture;
@@ -86,9 +82,10 @@ namespace KeyboardMania.States
         private float _hitScaleFactor = 1.5f;
         #endregion
 
-        public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
+        public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath, string beatmapName)
             : base(game, graphicsDevice, content)
         {
+            _beatmapName = beatmapName;
             _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
             _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
             _screenWidth = graphicsDevice.Viewport.Width;
@@ -358,7 +355,7 @@ namespace KeyboardMania.States
             HandleKeyReleases(); // Handle key releases for feedback
             if ((totalNotes == allCurrentNotes) && (_currentTime == finalEndTiming + 3000))
             {
-                _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, _score));
+                _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
             }
         }
         private bool CheckForHit(Note note, float hitPointY, int lane)
@@ -375,7 +372,6 @@ namespace KeyboardMania.States
                 {
                     _hitTimings.Add(timeDifference);
                     _hitTimingsSum += timeDifference;
-                    _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count;
                     _comboCount = -1;
                     return true;
                 }
@@ -383,7 +379,6 @@ namespace KeyboardMania.States
                 {
                     _hitTimings.Add(timeDifference);
                     _hitTimingsSum += timeDifference;
-                    _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count;
                     return true;
                 }
             }

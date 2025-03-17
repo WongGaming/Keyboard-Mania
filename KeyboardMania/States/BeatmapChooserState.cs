@@ -63,7 +63,7 @@ namespace KeyboardMania.States
         }
         private void PlayGameButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new GameState(_game, _graphicsDevice, _content, _beatmaps[_selectedItem], LookForMp3File()));
+            _game.ChangeState(new GameState(_game, _graphicsDevice, _content, _beatmaps[_selectedItem], LookForMp3File(), _folders[_selectedItem]));
         }
         private void ReturnButton_Click(object sender, EventArgs e)
         {
@@ -117,7 +117,7 @@ namespace KeyboardMania.States
             }
             else if (keyboardState.IsKeyDown(Keys.Enter) && firstPress)
             {
-                _game.ChangeState(new GameState(_game, _graphicsDevice, _content, _beatmaps[_selectedItem], LookForMp3File()));
+                _game.ChangeState(new GameState(_game, _graphicsDevice, _content, _beatmaps[_selectedItem], LookForMp3File(), _folders[_selectedItem]));
             }
             if(keyboardState.IsKeyUp(Keys.Down) && keyboardState.IsKeyUp(Keys.Up) && keyboardState.IsKeyUp(Keys.Enter))
             {

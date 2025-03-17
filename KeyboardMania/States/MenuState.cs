@@ -26,7 +26,6 @@ namespace KeyboardMania.States
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 1 * buttonSpacing),
                 Text = "Play",
             };
-
             playGameButton.Click += PlayGameButton_Click;
 
             var LeaderboardButton = new Button(buttonTexture, buttonFont)
@@ -34,6 +33,7 @@ namespace KeyboardMania.States
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 2 * buttonSpacing),
                 Text = "Leaderboard",
             };
+            LeaderboardButton.Click += LeaderboardButton_Click;
 
             var optionsButton = new Button(buttonTexture, buttonFont)
             {
@@ -79,7 +79,7 @@ namespace KeyboardMania.States
 
         private void LeaderboardButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, 20));
+            _game.ChangeState(new ChooseLeaderboardState(_game, _graphicsDevice, _content));
         }
 
         private void PlayGameButton_Click(object sender, EventArgs e)
