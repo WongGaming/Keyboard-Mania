@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using KeyboardMania.States;
+using KeyboardMania.Controls;
 
 namespace KeyboardMania.States
 {
@@ -39,7 +42,9 @@ namespace KeyboardMania.States
             spriteBatch.Begin();
 
             foreach (var component in _components)
+            {
                 component.Draw(gameTime, spriteBatch);
+            }
 
             spriteBatch.End();
         }
