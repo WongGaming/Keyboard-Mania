@@ -29,10 +29,10 @@ namespace KeyboardMania.States
 
             playGameButton.Click += PlayGameButton_Click;
 
-            var beatmapEditorButton = new Button(buttonTexture, buttonFont)
+            var LeaderboardButton = new Button(buttonTexture, buttonFont)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 2 * buttonSpacing),
-                Text = "Beatmap Editor",
+                Text = "Leaderboard",
             };
 
             var optionsButton = new Button(buttonTexture, buttonFont)
@@ -53,7 +53,7 @@ namespace KeyboardMania.States
             _components = new List<Component>()
             {
                 playGameButton,
-                beatmapEditorButton,
+                LeaderboardButton,
                 optionsButton,
                 quitGameButton,
             };
@@ -77,9 +77,9 @@ namespace KeyboardMania.States
             spriteBatch.End();
         }
 
-        private void BeatmapEditorButton_Click(object sender, EventArgs e)
+        private void LeaderboardButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new BeatmapEditorState(_game, _graphicsDevice, _content));
+            _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, 20));
         }
 
         private void PlayGameButton_Click(object sender, EventArgs e)
