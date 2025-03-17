@@ -67,11 +67,11 @@ namespace KeyboardMania.States
             };
             _textBoxRectangle = new List<Rectangle>
             {
+                new Rectangle(300, 100, 200, 30),
                 new Rectangle(300, 150, 200, 30),
-                new Rectangle(300, 200, 200, 30),
-                new Rectangle(300,250,200,30),
-                new Rectangle(300, 300, 200, 30),
-                new Rectangle(300, 350, 200, 30)
+                new Rectangle(300,200,200,30),
+                new Rectangle(300, 250, 200, 30),
+                new Rectangle(300, 300, 200, 30)
             };
             returnButton.Click += ReturnButton_Click;
             _components = new List<Component>()
@@ -109,6 +109,7 @@ namespace KeyboardMania.States
                     }
                     else if (args.Key == Keys.Enter)
                     {
+                        _textBoxSelected[i] = false;
                     }
                     else if (!char.IsControl(args.Character))
                     {
@@ -157,11 +158,15 @@ namespace KeyboardMania.States
             {
                 component.Update(gameTime);
             }
-            foreach (var rect in _textBoxRectangle)
+            MouseState mouseState = Mouse.GetState();
+            for(int i = 0; i < _textBoxText.Count - 1; i++)
             {
-
+            if (mouseState.LeftButton == ButtonState.Pressed && _textBoxRectangle[i].Contains(mouseState.Position))
+            {
+                _textBoxSelected[i] = true;
             }
-            
+            }
+
         }
     }
 }

@@ -87,15 +87,20 @@ namespace KeyboardMania
             // Update the current state
             _currentState.Update(gameTime);
 
+            bool firstPress = false;
             // Handle input for full-screen toggle
             var keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Keys.F11))
+            if (keyboardState.IsKeyDown(Keys.F11) && !firstPress)
             {
                 graphics.IsFullScreen = !graphics.IsFullScreen; // Toggle full-screen mode
                 graphics.HardwareModeSwitch = !graphics.IsFullScreen; // Switch between modes
                 graphics.ApplyChanges(); // Apply the changes
+                firstPress = true;
             }
-
+            if (keyboardState.IsKeyUp(Keys.F11) && firstPress)
+            {
+                firstPress = false;
+            }
             base.Update(gameTime);
         }
 
