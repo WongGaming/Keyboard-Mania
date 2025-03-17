@@ -10,7 +10,7 @@ namespace KeyboardMania.States
 {
     public class EditLeaderboardState : State
     {
-        public EditLeaderboardState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
+        public EditLeaderboardState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content,string leaderboardDirectory)
             : base(game, graphicsDevice, content)
         {
             // Initialize any components or variables specific to this state

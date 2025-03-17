@@ -12,11 +12,10 @@ namespace KeyboardMania.States
     {
         private List<Component> _components;
         private Texture2D _logo;
-
+        float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
         public MenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
             : base(game, graphicsDevice, content)
         {
-            // Load content here
             _logo = _content.Load<Texture2D>("Textures/blacklogo");
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             int buttonSpacing = 50;
@@ -63,7 +62,7 @@ namespace KeyboardMania.States
         {
             spriteBatch.Begin();
 
-            float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
+            
             Vector2 position = new Vector2((_graphicsDevice.Viewport.Width - (_logo.Width * logoScale)) / 2,(_graphicsDevice.Viewport.Height - (_logo.Height * logoScale)) / 2 - (_graphicsDevice.Viewport.Height / 4));
 
 
@@ -85,7 +84,6 @@ namespace KeyboardMania.States
         private void PlayGameButton_Click(object sender, EventArgs e)
         {
             _game.ChangeState(new BeatmapChooserState(_game, _graphicsDevice, _content));
-            //_game.ChangeState(new GameState(_game, _graphicsDevice, _content));
         }
 
         private void OptionsButton_Click(object sender, EventArgs e)

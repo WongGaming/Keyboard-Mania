@@ -353,7 +353,10 @@ namespace KeyboardMania.States
                 }
             }
             HandleKeyReleases(); // Handle key releases for feedback
-            if ((totalNotes == allCurrentNotes) && (_currentTime == finalEndTiming + 3000))
+
+            //test below, to instantly call leaderboards
+            //if (_currentTime > finalEndTiming + 3000)
+            if ((totalNotes == allCurrentNotes) && (_currentTime > finalEndTiming + 3000))
             {
                 _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
             }

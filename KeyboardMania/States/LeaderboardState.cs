@@ -35,7 +35,7 @@ namespace KeyboardMania.States
             _textBoxRectangle = new Rectangle(100, 150, 200, 30);
             _userInput = string.Empty;
             _isTextBoxSelected = false;
-            string saveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania");
+            string saveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Leaderboard");
             if (!Directory.Exists(saveDirectory))
             {
                 Directory.CreateDirectory(saveDirectory);
@@ -43,12 +43,9 @@ namespace KeyboardMania.States
             string leaderboardFilePath = Path.Combine(saveDirectory, $"{beatmapName}.txt");
             if (!File.Exists(leaderboardFilePath))
             {
-                File.Create(leaderboardFilePath);
-                if (!File.Exists(leaderboardFilePath))
-                {
-                    File.Create(leaderboardFilePath).Dispose();
-                    File.WriteAllLines(leaderboardFilePath, new[] { $"{beatmapName}:" });
-                }
+                var leaderboardFile = File.Create(leaderboardFilePath);
+                File.WriteAllLines(leaderboardFilePath, new[] { $"{beatmapName}:" });
+                leaderboardFile.Close();
             }
             game.Window.TextInput += TextInputHandler;
         }
@@ -73,7 +70,7 @@ namespace KeyboardMania.States
         }
         private void SaveScoreToLeaderboard(int score, string beatmapName)
         {
-            string saveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania");
+            string saveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Leaderboard");
             string leaderboardFilePath = Path.Combine(saveDirectory, $"{_beatmapName}.txt");
 
             List<string> leaderboardEntries = File.ReadAllLines(leaderboardFilePath).ToList();
