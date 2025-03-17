@@ -81,8 +81,11 @@ namespace KeyboardMania.States
         #region DisplaySettings
         private float _noteScaleFactor;
         private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
+        private float _comboScaleFactor = 1.0f;
+        private float _scoreScaleFactor = 2.0f;
+        private float _hitScaleFactor = 1.5f;
         #endregion
-        
+
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath)
             : base(game, graphicsDevice, content)
         {
@@ -436,8 +439,13 @@ namespace KeyboardMania.States
         {
             _graphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
-            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_comboCount), new Vector2(100, 1000), Color.Red); //bugtesting combo counter Vector2(x, 2000) for home pc, Vector2(x,1000) for laptop
-            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_score), new Vector2(100, 1200), Color.Red);
+            //spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_comboCount), new Vector2(100, 1000), Color.Red); //combo counter Vector2(x, 2000) for home pc, Vector2(x,1000) for laptop
+            //spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/Font"), Convert.ToString(_score), new Vector2(100, 1200), Color.Red);
+            if (_hitTexture != null)
+            {
+                DrawCombo(gameTime, spriteBatch);
+            }
+            DrawScore(gameTime, spriteBatch);
             foreach (var laneNotes in _activeNotesByLane.Values)
             {
 
@@ -455,7 +463,6 @@ namespace KeyboardMania.States
                     spriteBatch.Draw(_hitFeedbackTexture, _keyPositions[i], null, Color.White, 0f, Vector2.Zero, new Vector2(_keyScaleFactor), SpriteEffects.None, 0f);
                 }
             }
-
             // Draw hit feedbacks first so that keys are rendered above them
             foreach (var feedback in _hitFeedbacks)
             {
@@ -468,7 +475,7 @@ namespace KeyboardMania.States
             }
             if(_hitTexture != null && (_currentTime < _endHitTextureTime))
             {
-                spriteBatch.Draw(_hitTexture, new Vector2(_keyPositions[2].X - _hitTexture.Width/3,(_screenHeight - (_keyTexture.Height * _keyScaleFactor))/2), null, Color.White, 0f, Vector2.Zero, new Vector2(0.5f), SpriteEffects.None, 0f);
+                spriteBatch.Draw(_hitTexture, new Vector2(_keyPositions[2].X - (_hitTexture.Width * _hitScaleFactor)/2,(_screenHeight - (_keyTexture.Height * _keyScaleFactor))/2), null, Color.White, 0f, Vector2.Zero, _hitScaleFactor, SpriteEffects.None, 0f);
             }
 
             spriteBatch.End();
@@ -564,6 +571,30 @@ namespace KeyboardMania.States
             double bonusScore = (maxScore * 0.5 / allCurrentNotes) * (hitBonusValue * Math.Sqrt(bonus) / 320.0);
 
             _score += (int)(baseScore + bonusScore);
+        }
+        private void DrawCombo(GameTime gameTime, SpriteBatch spriteBatch)
+        {
+            string comboString = _comboCount.ToString();
+            Vector2 comboPosition = new Vector2(_keyPositions[2].X - (_keyTexture.Width * _keyScaleFactor)/8, (_screenHeight - (_keyTexture.Height * _keyScaleFactor))/3);
+            float comboSpacing = 0;
+            foreach (char letter in comboString)
+            {
+                int number = letter - 48;
+                spriteBatch.Draw(_numberTextures[number], comboPosition, null, Color.White, 0f, Vector2.Zero, _comboScaleFactor, SpriteEffects.None, 0f);
+                comboPosition.X += _numberTextures[number].Width * _comboScaleFactor + comboSpacing;
+            }
+        }
+        private void DrawScore(GameTime gameTime, SpriteBatch spriteBatch)
+        {
+            string scoreString = _score.ToString();
+            Vector2 scorePosition = new Vector2(_screenWidth - scoreString.Length * _numberTextures[0].Width * _scoreScaleFactor, 0);
+            float scoreSpacing = 0;
+            foreach (char letter in scoreString)
+            {
+                int number = letter - 48;
+                spriteBatch.Draw(_numberTextures[number], scorePosition, null, Color.White, 0f, Vector2.Zero, _scoreScaleFactor, SpriteEffects.None, 0f);
+                scorePosition.X += _numberTextures[number].Width * _scoreScaleFactor + scoreSpacing;
+            }
         }
     }
 }
