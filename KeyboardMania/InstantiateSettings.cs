@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace KeyboardMania
 {
@@ -40,16 +41,30 @@ namespace KeyboardMania
             #endregion
 
             #region DisplaySettingsInstantiation
+            double logoscale = GetMonitorWidth()/5120;
+            double keyScaleFactor = GetMonitorWidth()/1400;
+            double comboScaleFactor = GetMonitorWidth()/3840;
+            double scoreScaleFactor = 2 * comboScaleFactor;
+            double hitScaleFactor = 1.5 * comboScaleFactor;
             string displaySettingsContent;
+
             displaySettingsContent = "[Display Settings]\n";
-            displaySettingsContent += "logoScale = {0}\n";
-            //add when I decide what to put here
+            displaySettingsContent += $"logoscale = {logoscale}\n";
+            displaySettingsContent += $"keyscale = {keyScaleFactor}\n";
+            displaySettingsContent += $"comboscale = {comboScaleFactor}\n";
+            displaySettingsContent += $"scorescale = {scoreScaleFactor}\n";
+            displaySettingsContent += $"hitscale = {hitScaleFactor}\n";
             #endregion
 
             #region GameplaySettingsInstantiation
             string gameplaySettingsContent;
+            int noteVelocity = GetMonitorWidth() / 2;
             gameplaySettingsContent = "[Gameplay Settings]\n";
-            //add when I decide what to put here
+            gameplaySettingsContent += $"notevelocity = {noteVelocity}\n";
+            gameplaySettingsContent += "keymapping = d,f,j,k\n";
+            gameplaySettingsContent += "latencyremover = 0\n";
+            gameplaySettingsContent += "fadeintiming = 0\n";
+            gameplaySettingsContent += "audiolatency = 0\n";
             #endregion
 
             string fullSettingsContent = skinSettingsContent + displaySettingsContent + gameplaySettingsContent;
@@ -73,6 +88,42 @@ namespace KeyboardMania
             string CurrentFileContent = File.ReadAllText(settingsFilePath);
             CurrentFileContent = Regex.Replace(CurrentFileContent, @"\[Skin Settings\][\s\S]*?\[Display Settings\]", skinSettingsContent + "[Display Settings]");
             File.WriteAllText(settingsFilePath, CurrentFileContent);
+        }
+        public void InitialiseDisplay(string settingsFilePath)
+        {
+            double logoscale = (double)(GetMonitorWidth() / 5120.0);
+            double keyScaleFactor = (double)(GetMonitorWidth() / 1400.0);
+            double comboScaleFactor = (double)(GetMonitorWidth() / 3840.0);
+            double scoreScaleFactor = (double)(2.0 * comboScaleFactor);
+            double hitScaleFactor = (double)(1.5 * comboScaleFactor);
+            string displaySettingsContent;
+            displaySettingsContent = "[Display Settings]\n";
+            displaySettingsContent += $"logoscale = {logoscale}\n";
+            displaySettingsContent += $"keyscale = {keyScaleFactor}\n";
+            displaySettingsContent += $"comboscale = {comboScaleFactor}\n";
+            displaySettingsContent += $"scorescale = {scoreScaleFactor}\n";
+            displaySettingsContent += $"hitscale = {hitScaleFactor}\n";
+            string CurrentFileContent = File.ReadAllText(settingsFilePath);
+            CurrentFileContent = Regex.Replace(CurrentFileContent, @"\[Display Settings\][\s\S]*?\[Gameplay Settings\]", displaySettingsContent + "[Gameplay Settings]");
+            File.WriteAllText(settingsFilePath, CurrentFileContent);
+        }
+        public void InitialiseGameplay(string settingsFilePath)
+        {
+            string gameplaySettingsContent;
+            int noteVelocity = GetMonitorWidth() / 2;
+            gameplaySettingsContent = "[Gameplay Settings]\n";
+            gameplaySettingsContent += $"notevelocity = {noteVelocity}\n";
+            gameplaySettingsContent += "keymapping = d,f,j,k\n";
+            gameplaySettingsContent += "latencyremover = 0\n";
+            gameplaySettingsContent += "fadeintiming = 0\n";
+            gameplaySettingsContent += "audiolatency = 0\n";
+            string CurrentFileContent = File.ReadAllText(settingsFilePath);
+            CurrentFileContent = Regex.Replace(CurrentFileContent, @"\[Gameplay Settings\][\s\S]*", gameplaySettingsContent);
+            File.WriteAllText(settingsFilePath, CurrentFileContent);
+        }
+        public int GetMonitorWidth()
+        {
+            return GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
         }
     }
 }

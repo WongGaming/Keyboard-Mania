@@ -15,6 +15,7 @@ namespace KeyboardMania.States
 {
     public class GameState : State
     {
+        private float _noteScaleFactor; //constant, because this is reliant on the keyscalefactor
         private string _beatmapName;
         private Texture2D _hitFeedbackTexture;
         private double _currentTime;
@@ -68,14 +69,13 @@ namespace KeyboardMania.States
         #region GameplaySettings
         private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
         private Dictionary<int, Keys> _keyMapping; // Map lanes to keys
-        private double _latencyRemover = 222.92825; // Enter the average latency experienced
+        private double _latencyRemover = 222.92825; // Latency remover for my home PC 
         private int fadeInTiming = 0;
         private float _audioLatency = 0;
 
         #endregion
 
         #region DisplaySettings
-        private float _noteScaleFactor;
         private float _keyScaleFactor = 2.5f; //2.5 home pc 1f laptop 
         private float _comboScaleFactor = 1.0f;
         private float _scoreScaleFactor = 2.0f;
@@ -85,6 +85,13 @@ namespace KeyboardMania.States
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath, string beatmapName)
             : base(game, graphicsDevice, content)
         {
+            _keyMapping = new Dictionary<int, Keys>
+                {
+                    { 0, Keys.D },
+                    { 1, Keys.F },
+                    { 2, Keys.J },
+                    { 3, Keys.K }
+                };
             _beatmapName = beatmapName;
             _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
             _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
@@ -101,6 +108,13 @@ namespace KeyboardMania.States
             parseSkinSettings.ParseNoteCurrentSettings(settingsFilePath, _rootDirectory, _content, _noteTexture, _holdTexture, _lengthTexture, _currentNoteTextures);
             parseSkinSettings.ParseHitCurrentSettings(settingsFilePath, _rootDirectory, _content, _allHitTextures, _currentHitTextures);
 
+            var parseDisplaySettings = new ParseDisplaySettings(_content);
+            if (!File.Exists(settingsFilePath))
+            {
+                var instantiateSettings = new InstantiateSettings();
+                instantiateSettings.InitialiseSettings(settingsFilePath);
+            }
+            parseDisplaySettings.ParseDisplayGameplayScaling(settingsFilePath, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor);
             _mp3Player = new Mp3Player(_mp3FilePath);
 
             _noteScaleFactor = 100f * _keyScaleFactor / 256f;
@@ -117,14 +131,6 @@ namespace KeyboardMania.States
             _hitFeedbacks = new List<HitFeedback>();
             _keysPressed = new bool[NumberOfKeys]; 
 
-            _keyMapping = new Dictionary<int, Keys>
-                {
-                    { 0, Keys.D },
-                    { 1, Keys.F },
-                    { 2, Keys.J },
-                    { 3, Keys.K }
-                };
-
             for (int i = 0; i < NumberOfKeys; i++)
             {
                 _hitObjectsByLane[i] = new List<HitObject>();
@@ -137,6 +143,8 @@ namespace KeyboardMania.States
                 string currentTexture = "Controls/default-" + i;
                 _numberTextures.Add(_content.Load<Texture2D>(currentTexture));
             }
+            var parseGameplaySettings = new ParseGameplaySettings(_content);
+            parseGameplaySettings.ParseGameplayValues(settingsFilePath, _noteVelocity, _keyMapping, _latencyRemover, fadeInTiming, _audioLatency);
             LoadBeatmap(_osuFilePath);
         }
 
@@ -193,7 +201,10 @@ namespace KeyboardMania.States
 
             int lane = x / 128;
             bool isHeldNote = endTime > startTime;
-
+            if (endTime> finalEndTiming)
+            {
+                finalEndTiming = endTime;
+            }
             var hitObject = new HitObject
             {
                 Lane = lane,
@@ -305,10 +316,6 @@ namespace KeyboardMania.States
                 // Update active notes and check for hits (starting with the closest to the hit point)
                 for (int i = activeNotes.Count - 1; i >= 0; i--)
                 {
-                    if (currentNote == allCurrentNotes)
-                    {
-                        finalEndTiming = activeNotes[i].HitObject.EndTime;
-                    }
                     firstNotePress = true;
                     var note = activeNotes[i];
                     note.Update(gameTime);
@@ -356,7 +363,7 @@ namespace KeyboardMania.States
 
             //test below, to instantly call leaderboards
             //if (_currentTime < finalEndTiming + 3000)
-            if ((totalNotes == allCurrentNotes) && (_currentTime > finalEndTiming + 3000))
+            if(_currentTime > finalEndTiming + 3000)
             {
                 _game.ChangeState(new LeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
             }

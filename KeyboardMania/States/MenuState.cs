@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using KeyboardMania.States;
 using KeyboardMania.Controls;
+using System.IO;
 
 namespace KeyboardMania.States
 {
@@ -13,9 +14,13 @@ namespace KeyboardMania.States
         private List<Component> _components;
         private Texture2D _logo;
         float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
+        private string settingsFileLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
         public MenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
             : base(game, graphicsDevice, content)
         {
+            var parseDisplaySettings = new ParseDisplaySettings(content);
+            parseDisplaySettings.ParseLogoScaling(settingsFileLocation, logoScale);
+
             _logo = _content.Load<Texture2D>("Textures/blacklogo");
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             int buttonSpacing = 50;
@@ -88,7 +93,7 @@ namespace KeyboardMania.States
 
         private void OptionsButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new OptionsMenuState(_game, _graphicsDevice, _content));
+            _game.ChangeState(new OptionsMenuState(_game, _graphicsDevice, _content, settingsFileLocation));
         }
         public override void Update(GameTime gameTime)
         {

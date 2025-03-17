@@ -15,9 +15,13 @@ namespace KeyboardMania.States
   public class OptionsMenuState : State
   {
         private List<Component> _components;
-        private Texture2D _logo;
-        public OptionsMenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content) : base(game, graphicsDevice, content)
+        private Texture2D _logo; 
+        float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
+        public OptionsMenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string settingsFileLocation) : base(game, graphicsDevice, content)
     {
+            var parseDisplaySettings = new ParseDisplaySettings(content);
+            parseDisplaySettings.ParseLogoScaling(settingsFileLocation, logoScale);
+
             _logo = _content.Load<Texture2D>("Textures/blacklogo");
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             int buttonSpacing = 50;
@@ -68,7 +72,7 @@ namespace KeyboardMania.States
         }
         private void DisplaySettingsButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new DisplayChooserState(_game, _graphicsDevice, _content));
+            _game.ChangeState(new DisplaySettingsState(_game, _graphicsDevice, _content));
         }
         private void GameplaySettingsButton_Click(object sender, EventArgs e)
         {
@@ -82,16 +86,7 @@ namespace KeyboardMania.States
     {
             spriteBatch.Begin();
 
-            // Define a scale factor to shrink the texture
-            float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
-            // Center the texture on the screen
-            Vector2 position = new Vector2((_graphicsDevice.Viewport.Width - (_logo.Width * logoScale)) / 2, (_graphicsDevice.Viewport.Height - (_logo.Height * logoScale)) / 2 - (_graphicsDevice.Viewport.Height / 4));
-
-
-            // Draw the texture with the shrink scale
-            spriteBatch.Draw(_logo, position, null, Color.White, 0f, Vector2.Zero, logoScale, SpriteEffects.None, 0f);
-
-            // Draw components (buttons)
+            Vector2 position = new Vector2((_graphicsDevice.Viewport.Width - (_logo.Width * logoScale)) / 2, (_graphicsDevice.Viewport.Height - (_logo.Height * logoScale)) / 2 - (_graphicsDevice.Viewport.Height / 4));            spriteBatch.Draw(_logo, position, null, Color.White, 0f, Vector2.Zero, logoScale, SpriteEffects.None, 0f);
             foreach (var component in _components)
             {
                 component.Draw(gameTime, spriteBatch);
