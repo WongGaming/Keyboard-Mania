@@ -18,13 +18,13 @@ namespace KeyboardMania
         {
             _content = content;
         }
-        public void ParseLogoScaling(string settingsFilePath, float logoScale)
+        public void ParseLogoScaling(string settingsFilePath, ref float logoScale)
         {
             bool parsed = false;
             string[] lines = File.ReadAllLines(settingsFilePath);
             foreach (string line in lines)
             {
-                if (line.Contains("logoscaling"))
+                if (line.Contains("logoscale"))
                 {
                     string[] splitLine = line.Split('=');
                     string logoScalingValue = splitLine[1].Trim();
@@ -72,12 +72,12 @@ namespace KeyboardMania
                     hitScaleFactor = float.Parse(hitScaleFactorValue);
                     parsed.Add(true);
                 }
+            }
                 if(parsed.Count != 4)
                 {
                     var instantiateSettings = new InstantiateSettings();
                     instantiateSettings.InitialiseDisplay(settingsFilePath);
                 }
-            }
         }
         public void SaveNewSettings(string settingsFilePath, float logoScale, float keyScaleFactor, float comboScaleFactor, float scoreScaleFactor, float hitScaleFactor)
         {
@@ -88,7 +88,7 @@ namespace KeyboardMania
             displaySettingsContentList.Add($"keyscale = {keyScaleFactor}");
             displaySettingsContentList.Add($"comboscale = {comboScaleFactor}");
             displaySettingsContentList.Add($"scorescale = {scoreScaleFactor}");
-            displaySettingsContentList.Add($"hitscale = {hitScaleFactor}");
+            displaySettingsContentList.Add($"hitscale = {hitScaleFactor}\n");
             string displaySettingsContent = string.Join("\n", displaySettingsContentList);
             file = Regex.Replace(file, @"\[Display Settings\][\s\S]*?\[Gameplay Settings\]", displaySettingsContent + "[Gameplay Settings]");
             File.WriteAllText(settingsFilePath, file);

@@ -333,10 +333,6 @@ namespace KeyboardMania.States
                     firstPress = false;
                 }
             }
-            /*else if (keyboardState.IsKeyDown(Keys.Enter) && firstPress)
-            {
-                _game.ChangeState(new GameState(_game, _graphicsDevice, _content, _beatmaps[_selectedItem], LookForMp3File()));
-            }*/
             if (keyboardState.IsKeyUp(Keys.Down) && keyboardState.IsKeyUp(Keys.Up) && keyboardState.IsKeyUp(Keys.Left) && keyboardState.IsKeyUp(Keys.Right) && keyboardState.IsKeyUp(Keys.Enter))
             {
                 firstPress = true;

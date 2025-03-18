@@ -19,7 +19,7 @@ namespace KeyboardMania.States
             : base(game, graphicsDevice, content)
         {
             var parseDisplaySettings = new ParseDisplaySettings(content);
-            parseDisplaySettings.ParseLogoScaling(settingsFileLocation, logoScale);
+            parseDisplaySettings.ParseLogoScaling(settingsFileLocation, ref logoScale);
 
             _logo = _content.Load<Texture2D>("Textures/blacklogo");
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");

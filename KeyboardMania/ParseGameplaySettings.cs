@@ -75,7 +75,7 @@ namespace KeyboardMania
             gameplaySettingsContentList.Add($"keymapping = {keyMapping[0]},{keyMapping[1]},{keyMapping[2]},{keyMapping[3]}");
             gameplaySettingsContentList.Add($"latencyremover = {latencyRemover}");
             gameplaySettingsContentList.Add($"fadeintiming = {fadeInTiming}");
-            gameplaySettingsContentList.Add($"audiolatency = {audioLatency}");
+            gameplaySettingsContentList.Add($"audiolatency = {audioLatency}\n");
             string gameplaySettingsContent = string.Join("\n", gameplaySettingsContentList);
             file = Regex.Replace(file, @"\[Gameplay Settings\][\s\S]*?", gameplaySettingsContent);
             File.WriteAllText(settingsFilePath, file);

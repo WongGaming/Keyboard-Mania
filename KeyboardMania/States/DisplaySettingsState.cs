@@ -11,6 +11,8 @@ using Microsoft.Xna.Framework.Graphics;
 using KeyboardMania.States;
 using System.IO;
 using Microsoft.Xna.Framework.Input;
+using static System.Formats.Asn1.AsnWriter;
+using NAudio.Wave;
 
 namespace KeyboardMania.States
 {
@@ -24,7 +26,7 @@ namespace KeyboardMania.States
         private float _comboScaleFactor;
         private float _scoreScaleFactor;
         private float _hitScaleFactor;
-        private List<string> DisplaySettings = new List<string>()
+        private List<string> _settingName = new List<string>()
         {
             "LogoScale",
             "KeyScaleFactor",
@@ -32,22 +34,20 @@ namespace KeyboardMania.States
             "ScoreScaleFactor",
             "HitScaleFactor"
         };
-        private List<Rectangle> _textBoxRectangle;
-        private Texture2D _textBoxTexture;
-        private Dictionary<int, bool> _textBoxSelected;
-        private List<string> _textBoxText;
+        private List<bool> _settingSelected;
+        private int _selectedItem;
+        private List<string> _settingValues;
         public DisplaySettingsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
             : base(game, graphicsDevice, content)
         {
             _font = content.Load<SpriteFont>("Fonts/Font");
             _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
             var parseDisplaySettings = new ParseDisplaySettings(content);
-            parseDisplaySettings.ParseLogoScaling(_settingsFilePath, _logoScale);
-            parseDisplaySettings.ParseDisplayGameplayScaling(_settingsFilePath, ref _keyScaleFactor,ref _comboScaleFactor,ref _scoreScaleFactor,ref _hitScaleFactor);
+            parseDisplaySettings.ParseLogoScaling(_settingsFilePath,ref _logoScale);
+            parseDisplaySettings.ParseDisplayGameplayScaling(_settingsFilePath, ref _keyScaleFactor, ref _comboScaleFactor, ref _scoreScaleFactor, ref _hitScaleFactor);
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             var buttonFont = _content.Load<SpriteFont>("Fonts/Font");
             int buttonSpacing = 50;
-            _textBoxTexture = new Texture2D(graphicsDevice, 1, 1);
             var saveButton = new Button(buttonTexture, buttonFont)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 1 * buttonSpacing),
@@ -60,60 +60,59 @@ namespace KeyboardMania.States
                 Text = "Reset to Default",
             };
             defaultResetButton.Click += DefaultResetButton_Click;
-            var returnButton = new Button(buttonTexture, buttonFont)
+            var resetButton = new Button(buttonTexture, _font)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 3 * buttonSpacing),
-                Text = "Return (SAVE FIRST)",
+                Text = "Reset to Last Save",
             };
-            _textBoxRectangle = new List<Rectangle>
+            resetButton.Click += ResetButton_Click;
+            var returnButton = new Button(buttonTexture, buttonFont)
             {
-                new Rectangle(300, 100, 200, 30),
-                new Rectangle(300, 150, 200, 30),
-                new Rectangle(300,200,200,30),
-                new Rectangle(300, 250, 200, 30),
-                new Rectangle(300, 300, 200, 30)
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 4 * buttonSpacing),
+                Text = "Return (SAVE FIRST)",
             };
             returnButton.Click += ReturnButton_Click;
             _components = new List<Component>()
             {
                 saveButton,
                 defaultResetButton,
+                resetButton,
                 returnButton
             };
-            _textBoxText = new List<string>();
-            _textBoxSelected = new Dictionary<int, bool>();
+            _settingValues = new List<string>();
+            _settingSelected = new List<bool>();
             for (int i = 0; i < 5; i++)
             {
-                _textBoxSelected.Add(i, false);
+                _settingSelected.Add(false);
             }
-            InstantiateRectangleText(_logoScale, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor, _textBoxText);
+            InstantiateInitialSettings(_logoScale, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor, _settingValues);
             game.Window.TextInput += TextInputHandler;
         }
-        private void InstantiateRectangleText(float LogoScale, float KeyScaleFactor, float ComboScaleFactor, float ScoreScaleFactor, float HitScaleFactor, List<string> TextBoxText)
+        private void InstantiateInitialSettings(float LogoScale, float KeyScaleFactor, float ComboScaleFactor, float ScoreScaleFactor, float HitScaleFactor, List<string> InitialSettings)
         {
-            TextBoxText.Add(LogoScale.ToString());
-            TextBoxText.Add(KeyScaleFactor.ToString());
-            TextBoxText.Add(ComboScaleFactor.ToString());
-            TextBoxText.Add(ScoreScaleFactor.ToString());
-            TextBoxText.Add(HitScaleFactor.ToString());
+            InitialSettings.Add(LogoScale.ToString());
+            InitialSettings.Add(KeyScaleFactor.ToString());
+            InitialSettings.Add(ComboScaleFactor.ToString());
+            InitialSettings.Add(ScoreScaleFactor.ToString());
+            InitialSettings.Add(HitScaleFactor.ToString());
         }
+
         private void TextInputHandler(object sender, TextInputEventArgs args)
         {
             for (int i = 0; i < 5; i++)
             {
-                if (_textBoxSelected[i])
+                if (_settingSelected[i])
                 {
-                    if (args.Key == Keys.Back && _textBoxText[i].Length > 0)
+                    if (args.Key == Keys.Back && _settingValues[i].Length > 0)
                     {
-                        _textBoxText[i] = _textBoxText[i][..^1];
-                    }
-                    else if (args.Key == Keys.Enter)
-                    {
-                        _textBoxSelected[i] = false;
+                        _settingValues[i] = _settingValues[i][..^1];
                     }
                     else if (!char.IsControl(args.Character))
                     {
-                        _textBoxText[i] += args.Character;
+                        if (char.IsDigit(args.Character) || args.Character == '.')
+                        {
+                            _settingValues[i] += args.Character;
+                        }
                     }
                 }
             }
@@ -125,7 +124,13 @@ namespace KeyboardMania.States
         }
         private void DefaultResetButton_Click(object sender, EventArgs e)
         {
-
+            var instantiateSettings = new InstantiateSettings();
+            instantiateSettings.InitialiseDisplay(_settingsFilePath);
+            _game.ChangeState(new DisplaySettingsState(_game, _graphicsDevice, _content));
+        }
+        private void ResetButton_Click(object sender, EventArgs e)
+        {
+            InstantiateInitialSettings(_logoScale, _keyScaleFactor, _comboScaleFactor, _scoreScaleFactor, _hitScaleFactor, _settingValues);
         }
         private void ReturnButton_Click(object sender, EventArgs e)
         {
@@ -140,16 +145,119 @@ namespace KeyboardMania.States
             {
                 component.Draw(gameTime, spriteBatch);
             }
-            int i = 0;
-            foreach (var rect in _textBoxRectangle)
+            for (int i = 0; i < _settingName.Count; i++)
             {
-                spriteBatch.Draw(_textBoxTexture, _textBoxRectangle[i], Color.Gray);
-                spriteBatch.DrawString(_font, _textBoxText[i], new Vector2(300, 300 - i * 50), Color.White);
-                spriteBatch.DrawString(_font, DisplaySettings[i], new Vector2(100, 300 - i * 50), Color.White);
-                i++;
+                if (i == _selectedItem)
+                {
+                    spriteBatch.DrawString(_font, _settingName[i], new Vector2(100, 100 + i * 50), Color.Red);
+                }
+                else
+                {
+                    spriteBatch.DrawString(_font, _settingName[i], new Vector2(100, 100 + i * 50), Color.White);
+                }
+                if (i == _selectedItem)
+                {
+                    spriteBatch.DrawString(_font, _settingValues[i], new Vector2(300, 100 + i * 50), Color.Red);
+                }
+                else
+                {
+                    spriteBatch.DrawString(_font, _settingValues[i], new Vector2(300, 100 + i * 50), Color.White);
+                }
             }
-
+            for (int i = 0; i < _settingSelected.Count; i++)
+            {
+                if (_settingSelected[i])
+                {
+                    spriteBatch.DrawString(_font, $"{_settingName[i]} is currently selected", new Vector2((_graphicsDevice.Viewport.Width) / 2, (_graphicsDevice.Viewport.Height) / 2 - 200), Color.White);
+                }
+            }
             spriteBatch.End();
+        }
+        bool firstPress = true;
+        private void HandleInput()
+        {
+            var keyboardState = Keyboard.GetState();
+            if (keyboardState.IsKeyDown(Keys.Down) && firstPress && CheckAllFalse(_settingSelected))
+            {
+                _selectedItem++;
+                if (_selectedItem >= _settingName.Count)
+                {
+                    _selectedItem = 0;
+                }
+                firstPress = false;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Up) && firstPress && CheckAllFalse(_settingSelected))
+            {
+                _selectedItem--;
+                if (_selectedItem < 0)
+                {
+                    _selectedItem = _settingName.Count - 1;
+                }
+                firstPress = false;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Enter) && firstPress && !_settingSelected[_selectedItem])
+            {
+
+                _settingSelected[_selectedItem] = true;
+                firstPress = false;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Enter) && firstPress && _settingSelected[_selectedItem])
+            {
+                _settingSelected[_selectedItem] = false;
+
+                if (_selectedItem == 0)
+                {
+                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    {
+                        _logoScale = (float)intValue;
+                    }
+                }
+                else if (_selectedItem == 1)
+                {
+                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    {
+                        _keyScaleFactor = (float)intValue;
+                    }
+                }
+                else if (_selectedItem == 2)
+                {
+                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    {
+                        _comboScaleFactor = (float)intValue;
+                    }
+                }
+                else if (_selectedItem == 3)
+                {
+                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    {
+                        _scoreScaleFactor = (float)intValue;
+                    }
+                }
+                else if (_selectedItem == 4)
+                {
+                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    {
+                        _hitScaleFactor = (float)intValue;
+                    }
+                }
+                firstPress = false;
+            }
+            if (keyboardState.IsKeyUp(Keys.Down) && keyboardState.IsKeyUp(Keys.Up) && keyboardState.IsKeyUp(Keys.Enter))
+            {
+                firstPress = true;
+            }
+        }
+        private bool CheckAllFalse(List<bool> settingsSelected)
+        {
+            bool allFalse = true;
+            for (int i = 0; i < settingsSelected.Count; i++)
+            {
+                if (settingsSelected[i])
+                {
+                    allFalse = false;
+                }
+            }
+            return allFalse;
         }
 
         public override void Update(GameTime gameTime)
@@ -158,15 +266,7 @@ namespace KeyboardMania.States
             {
                 component.Update(gameTime);
             }
-            MouseState mouseState = Mouse.GetState();
-            for(int i = 0; i < _textBoxText.Count - 1; i++)
-            {
-            if (mouseState.LeftButton == ButtonState.Pressed && _textBoxRectangle[i].Contains(mouseState.Position))
-            {
-                _textBoxSelected[i] = true;
-            }
-            }
-
+            HandleInput();
         }
     }
 }
