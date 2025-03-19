@@ -319,7 +319,8 @@ namespace KeyboardMania.States
                     }
                     else if (note.HitObject.IsHeldNote && _keysPressed[lane] && !note._firstPressed && keyboardState.IsKeyUp(_keyMapping[lane]) && IsLowestNoteOnScreen(note, lane) && firstNotePress == true)
                     {
-                        if (Math.Abs(_hitTimings[_hitTimings.Count - 1]) < _scoreMargins["50"])
+                        double timeDifference = _currentTime - note.HitObject.EndTime - _latencyRemover;
+                        if (Math.Abs(timeDifference) < _scoreMargins["50"])
                         {
                         HandleScoreMargin(note, _hitTimings[_hitTimings.Count - 1]);
                         activeNotes.RemoveAt(i);
@@ -327,11 +328,12 @@ namespace KeyboardMania.States
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                         }
-                        else if (Math.Abs(_hitTimings[_hitTimings.Count - 1]) < _scoreMargins["0"])
+                        else if (Math.Abs(timeDifference) > _scoreMargins["0"])
                         {
                             _comboCount = 0;
                             _hitTexture = _allHitTextures[0];
                             _endHitTextureTime = _currentTime + 500;
+                            activeNotes.RemoveAt(i);
                         }
                     }
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note) && firstNotePress == true)
@@ -380,7 +382,7 @@ namespace KeyboardMania.States
                     return true;
                 }
             }
-            double holdTimeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover;
+            double holdTimeDifference = _currentTime - note.HitObject.StartTime  - _latencyRemover;
             if (note.HitObject.IsHeldNote && _keysPressed[lane] && note._firstPressed == true && Math.Abs(holdTimeDifference) <= _scoreMargins["0"])
             {
                 _comboCount += 1;
