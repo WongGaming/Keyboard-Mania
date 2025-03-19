@@ -68,7 +68,7 @@ namespace KeyboardMania.States
 
         #region GameplaySettings
         private float _noteVelocity = 2000f; // pixels per second 2000f home pc 1000f laptop
-        private Dictionary<int, Keys> _keyMapping; // Map lanes to keys
+        private List<Keys> _keyMapping; // Map lanes to keys
         private double _latencyRemover = 222.92825; // Latency remover for my home PC 
         private int fadeInTiming = 0;
         private float _audioLatency = 0;
@@ -85,13 +85,7 @@ namespace KeyboardMania.States
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath, string beatmapName)
             : base(game, graphicsDevice, content)
         {
-            _keyMapping = new Dictionary<int, Keys>
-                {
-                    { 0, Keys.D },
-                    { 1, Keys.F },
-                    { 2, Keys.J },
-                    { 3, Keys.K }
-                };
+            _keyMapping = new List<Keys>();
             _beatmapName = beatmapName;
             _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
             _keyTexture = _content.Load<Texture2D>("Controls/mania-key1");
@@ -459,11 +453,9 @@ namespace KeyboardMania.States
                     note.Draw(gameTime, spriteBatch);
                 }
             }
-
-            var keyStates = new[] { Keys.D, Keys.F, Keys.J, Keys.K };
-            for (int i = 0; i < keyStates.Length; i++)
+            for (int i = 0; i < _keyMapping.Count; i++)
             {
-                if (Keyboard.GetState().IsKeyDown(keyStates[i]))
+                if (Keyboard.GetState().IsKeyDown(_keyMapping[i]))
                 {
                     spriteBatch.Draw(_hitFeedbackTexture, _keyPositions[i], null, Color.White, 0f, Vector2.Zero, new Vector2(_keyScaleFactor), SpriteEffects.None, 0f);
                 }
@@ -584,7 +576,7 @@ namespace KeyboardMania.States
             float comboSpacing = 0;
             foreach (char letter in comboString)
             {
-                int number = letter - 48;
+                int number = letter - '0';
                 spriteBatch.Draw(_numberTextures[number], comboPosition, null, Color.White, 0f, Vector2.Zero, _comboScaleFactor, SpriteEffects.None, 0f);
                 comboPosition.X += _numberTextures[number].Width * _comboScaleFactor + comboSpacing;
             }

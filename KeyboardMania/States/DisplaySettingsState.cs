@@ -42,6 +42,14 @@ namespace KeyboardMania.States
         {
             _font = content.Load<SpriteFont>("Fonts/Font");
             _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
+            var instantiateSettings = new InstantiateSettings();
+            if ((_settingsFilePath.Count() == 0))
+            {
+                string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
+                instantiateSettings.InitialiseSettings(_rootDirectory);
+                _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
+            }
+            instantiateSettings.CheckForIncomplete(_settingsFilePath);
             var parseDisplaySettings = new ParseDisplaySettings(content);
             parseDisplaySettings.ParseLogoScaling(_settingsFilePath,ref _logoScale);
             parseDisplaySettings.ParseDisplayGameplayScaling(_settingsFilePath, ref _keyScaleFactor, ref _comboScaleFactor, ref _scoreScaleFactor, ref _hitScaleFactor);

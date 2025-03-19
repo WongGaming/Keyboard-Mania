@@ -18,7 +18,7 @@ namespace KeyboardMania
         {
             _content = content;
         }
-        public void ParseGameplayValues(string settingsFilePath, ref float noteVelocity, ref Dictionary<int, Keys> keyMapping,ref double latencyRemover,ref int fadeInTiming,ref float audioLatency)
+        public void ParseGameplayValues(string settingsFilePath, ref float noteVelocity, ref List<Keys> keyMapping,ref double latencyRemover,ref int fadeInTiming,ref float audioLatency)
         {
             List<bool> parsed = new List<bool>();
             string[] lines = File.ReadAllLines(settingsFilePath);
@@ -38,7 +38,7 @@ namespace KeyboardMania
                     string[] keyMappingValues = keyMappingValue.Split(',');
                     for (int i = 0; i < keyMappingValues.Length; i++)
                     {
-                        keyMapping[i] = (Keys)Enum.Parse(typeof(Keys), keyMappingValues[i]);
+                        keyMapping.Add((Keys)Enum.Parse(typeof(Keys), keyMappingValues[i].ToUpper()));
                     }
                     parsed.Add(true);
                 }
@@ -63,21 +63,26 @@ namespace KeyboardMania
                     audioLatency = float.Parse(audioLatencyValue);
                     parsed.Add(true);
                 }
-
+                if (parsed.Count != 5)
+                {
+                    var instantiateSettings = new InstantiateSettings();
+                    instantiateSettings.InitialiseDisplay(settingsFilePath);
+                }
             }
         }
-        public void SaveNewSettings(string settingsFilePath, float noteVelocity, Dictionary<int, Keys> keyMapping, double latencyRemover, int fadeInTiming, float audioLatency)
+        public void SaveNewSettings(string settingsFilePath, float noteVelocity, List<Keys> keyMapping, double latencyRemover, int fadeInTiming, float audioLatency)
         {
+            List<string> lowerCaseKeyMapping = keyMapping.Select(k => k.ToString().ToLower()).ToList();
             string file = File.ReadAllText(settingsFilePath);
             List<string> gameplaySettingsContentList = new List<string>();
             gameplaySettingsContentList.Add("[Gameplay Settings]");
             gameplaySettingsContentList.Add($"notevelocity = {noteVelocity}");
-            gameplaySettingsContentList.Add($"keymapping = {keyMapping[0]},{keyMapping[1]},{keyMapping[2]},{keyMapping[3]}");
+            gameplaySettingsContentList.Add($"keymapping = {lowerCaseKeyMapping[0]},{lowerCaseKeyMapping[1]},{lowerCaseKeyMapping[2]},{lowerCaseKeyMapping[3]}");
             gameplaySettingsContentList.Add($"latencyremover = {latencyRemover}");
             gameplaySettingsContentList.Add($"fadeintiming = {fadeInTiming}");
-            gameplaySettingsContentList.Add($"audiolatency = {audioLatency}\n");
+            gameplaySettingsContentList.Add($"audiolatency = {audioLatency}");
             string gameplaySettingsContent = string.Join("\n", gameplaySettingsContentList);
-            file = Regex.Replace(file, @"\[Gameplay Settings\][\s\S]*?", gameplaySettingsContent);
+            file = Regex.Replace(file, @"\[Gameplay Settings\][\s\S]*", gameplaySettingsContent);
             File.WriteAllText(settingsFilePath, file);
         }
     }

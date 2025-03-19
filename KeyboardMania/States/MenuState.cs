@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using KeyboardMania.States;
 using KeyboardMania.Controls;
 using System.IO;
+using System.Linq;
 
 namespace KeyboardMania.States
 {
@@ -14,10 +14,19 @@ namespace KeyboardMania.States
         private List<Component> _components;
         private Texture2D _logo;
         float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
-        private string settingsFileLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
+        private string settingsFileLocation;
         public MenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
             : base(game, graphicsDevice, content)
         {
+            settingsFileLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
+            var instantiateSettings = new InstantiateSettings();
+            if ((settingsFileLocation.Count() == 0))
+            {
+                string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
+                instantiateSettings.InitialiseSettings(_rootDirectory);
+                settingsFileLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
+            }
+            instantiateSettings.CheckForIncomplete(settingsFileLocation);
             var parseDisplaySettings = new ParseDisplaySettings(content);
             parseDisplaySettings.ParseLogoScaling(settingsFileLocation, ref logoScale);
 

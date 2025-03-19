@@ -18,7 +18,7 @@ namespace KeyboardMania
                 string settingsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania");
                 if (!Directory.Exists(settingsDirectory))
                 {
-                Directory.CreateDirectory(settingsDirectory);
+                    Directory.CreateDirectory(settingsDirectory);
                 }
                 settingsFilePath = Path.Combine(settingsDirectory, "Settings.txt");
                 File.Create(settingsFilePath);
@@ -41,10 +41,10 @@ namespace KeyboardMania
             #endregion
 
             #region DisplaySettingsInstantiation
-            double logoscale = GetMonitorWidth()/5120;
-            double keyScaleFactor = GetMonitorWidth()/1400;
-            double comboScaleFactor = GetMonitorWidth()/3840;
-            double scoreScaleFactor = 2 * comboScaleFactor;
+            double logoscale = GetMonitorWidth() / 5120.0;
+            double keyScaleFactor = GetMonitorWidth() / 1400.0;
+            double comboScaleFactor = GetMonitorWidth() / 3840.0;
+            double scoreScaleFactor = 2.0 * comboScaleFactor;
             double hitScaleFactor = 1.5 * comboScaleFactor;
             string displaySettingsContent;
 
@@ -62,7 +62,7 @@ namespace KeyboardMania
             gameplaySettingsContent = "[Gameplay Settings]\n";
             gameplaySettingsContent += $"notevelocity = {noteVelocity}\n";
             gameplaySettingsContent += "keymapping = d,f,j,k\n";
-            gameplaySettingsContent += "latencyremover = 0\n";
+            gameplaySettingsContent += "latencyremover = 222.92825\n";
             gameplaySettingsContent += "fadeintiming = 0\n";
             gameplaySettingsContent += "audiolatency = 0\n";
             #endregion
@@ -114,7 +114,7 @@ namespace KeyboardMania
             gameplaySettingsContent = "[Gameplay Settings]\n";
             gameplaySettingsContent += $"notevelocity = {noteVelocity}\n";
             gameplaySettingsContent += "keymapping = d,f,j,k\n";
-            gameplaySettingsContent += "latencyremover = 0\n";
+            gameplaySettingsContent += "latencyremover = 222.92825\n";
             gameplaySettingsContent += "fadeintiming = 0\n";
             gameplaySettingsContent += "audiolatency = 0\n";
             string CurrentFileContent = File.ReadAllText(settingsFilePath);
@@ -124,6 +124,58 @@ namespace KeyboardMania
         public int GetMonitorWidth()
         {
             return GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+        }
+        public void CheckForIncomplete(string settingsFilePath)
+        {
+            string[] lines = File.ReadAllLines(settingsFilePath);
+            List<bool> parsed = new List<bool>();
+            foreach (string line in lines)
+            {
+                if (line.Contains("logoscale"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("keyscale"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("comboscale"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("scorescale"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("hitscale"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("notevelocity"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("keymapping"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("latencyremover"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("fadeintiming"))
+                {
+                    parsed.Add(true);
+                }
+                else if (line.Contains("audiolatency"))
+                {
+                    parsed.Add(true);
+                }
+            }
+            if (parsed.Count != 10)
+            {
+                InitialiseSettings(settingsFilePath);
+            }
         }
     }
 }
