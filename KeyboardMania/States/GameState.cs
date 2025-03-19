@@ -43,7 +43,6 @@ namespace KeyboardMania.States
         // Track hit timings to adjust input lag
         private double _hitTimingsSum = 0;
         private double _hitTimingsAverage = 0;
-        private int _previousScrollValue = 0; // Store the initial scroll value
         private bool firstNotePress = false;
 
         private int _score = 0;
@@ -347,12 +346,15 @@ namespace KeyboardMania.States
                     }
                 }
             }
-            HandleKeyReleases(); // Handle key releases for feedback
+            HandleKeyReleases();
 
             //test below, to instantly call leaderboards
             //if (_currentTime < finalEndTiming + 3000)
             if(_currentTime > finalEndTiming + 3000)
             {
+                var saveAverageHitTiming = new AverageHitTiming(_content);
+               _latencyRemover = _latencyRemover - _hitTimingsAverage;
+                saveAverageHitTiming.SaveTiming(_latencyRemover);
                 _game.ChangeState(new AddLeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
             }
         }

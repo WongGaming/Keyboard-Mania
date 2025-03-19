@@ -73,9 +73,15 @@ namespace KeyboardMania.States
                 Text = "Reset to Last Save",
             };
             resetButton.Click += ResetButton_Click;
-            var returnButton = new Button(buttonTexture, buttonFont)
+            var averageButton = new Button(buttonTexture, buttonFont)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 4 * buttonSpacing),
+                Text = "Latency = Average",
+            };
+            averageButton.Click += AverageButton_Click;
+            var returnButton = new Button(buttonTexture, buttonFont)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 5 * buttonSpacing),
                 Text = "Return (SAVE FIRST)",
             };
             returnButton.Click += ReturnButton_Click;
@@ -84,6 +90,7 @@ namespace KeyboardMania.States
                 saveButton,
                 defaultResetButton,
                 resetButton,
+                averageButton,
                 returnButton
             };
             _settingValues = new List<string>();
@@ -156,6 +163,12 @@ namespace KeyboardMania.States
         private void ResetButton_Click(object sender, EventArgs e)
         {
             InstantiateInitialSettings(_noteVelocity, _keyMapping, _latencyRemover, _fadeInTiming, _audioLatency, _settingValues);
+        }
+        private void AverageButton_Click(Object sender, EventArgs e)
+        {
+            var averageHitTiming = new AverageHitTiming(_content);
+            averageHitTiming.LoadTiming(ref _latencyRemover);
+            _settingValues[2] = _latencyRemover.ToString();
         }
         private void ReturnButton_Click(object sender, EventArgs e)
         {
