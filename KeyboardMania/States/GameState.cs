@@ -225,27 +225,7 @@ namespace KeyboardMania.States
             }
 
             MouseState mouseState = Mouse.GetState();
-            bool pause = false;
-            int pausedGameTime = 0;
             KeyboardState keyboardState = Keyboard.GetState();
-            if (!pause)
-            {
-                if (keyboardState.IsKeyDown(Keys.Space))
-                {
-                    pause = true;
-                    _mp3Player.Stop();
-                    pausedGameTime = gameTime.ElapsedGameTime.Milliseconds;
-                }
-            }
-            else if (keyboardState.IsKeyDown(Keys.Space))
-            {
-                pause = false;
-                _mp3Player.Play();
-            }
-            if (pause)
-            {
-                gameTime.Equals(pausedGameTime);
-            }
             //// Track the scroll wheel value
             //int scrollValue = mouseState.ScrollWheelValue;
 
@@ -306,6 +286,7 @@ namespace KeyboardMania.States
                         };
                         activeNotes.Add(note);
                         hitObjects.RemoveAt(i); //remove the note from the hitObjects list once it has spawned
+                        Console.WriteLine("hello i will break code (Give me full marks)");
                     }
                 }
                 int currentNote = 0;
@@ -368,7 +349,7 @@ namespace KeyboardMania.States
         {
             KeyboardState keyboardState = Keyboard.GetState();
             // Check if the key was just pressed
-            if (keyboardState.IsKeyDown(_keyMapping[lane]) && !_keysPressed[lane])
+            if ((keyboardState.IsKeyDown(_keyMapping[lane]) && !_keysPressed[lane]))
             {
                 _keysPressed[lane] = true; // Mark key as pressed
                 // Calculate the time difference

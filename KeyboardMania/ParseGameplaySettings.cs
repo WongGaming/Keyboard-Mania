@@ -38,7 +38,14 @@ namespace KeyboardMania
                     string[] keyMappingValues = keyMappingValue.Split(',');
                     for (int i = 0; i < keyMappingValues.Length; i++)
                     {
-                        keyMapping.Add((Keys)Enum.Parse(typeof(Keys), keyMappingValues[i].ToUpper()));
+                        if (char.IsDigit(keyMappingValues[i], 0))
+                        {
+                            keyMapping.Add(Keys.D0 + (keyMappingValues[i][0] - '0'));
+                        }
+                        else
+                        {
+                            keyMapping.Add((Keys)Enum.Parse(typeof(Keys), keyMappingValues[i].ToUpper()));
+                        }
                     }
                     parsed.Add(true);
                 }
