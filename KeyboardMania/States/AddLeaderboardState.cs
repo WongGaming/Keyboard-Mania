@@ -43,9 +43,14 @@ namespace KeyboardMania.States
             string leaderboardFilePath = Path.Combine(saveDirectory, $"{beatmapName}.txt");
             if (!File.Exists(leaderboardFilePath))
             {
-                var leaderboardFile = File.Create(leaderboardFilePath);
+                if (!File.Exists(leaderboardFilePath))
+                {
+                    using (var leaderboardFile = File.Create(leaderboardFilePath))
+                    {
+                    }
+                    File.WriteAllLines(leaderboardFilePath, new[] { $"{beatmapName}:" });
+                }
                 File.WriteAllLines(leaderboardFilePath, new[] { $"{beatmapName}:" });
-                leaderboardFile.Close();
             }
             game.Window.TextInput += TextInputHandler;
         }

@@ -23,9 +23,12 @@ namespace KeyboardMania
                     Directory.CreateDirectory(averageDirectory);
                 }
                 averageFileLocation = Path.Combine(averageDirectory, "Settings.txt");
-                File.Create(averageFileLocation);
+                using (File.Create(averageFileLocation)) { }
             }
-            File.WriteAllText(averageFileLocation, timing.ToString());
+            using (var writer = new StreamWriter(averageFileLocation, false))
+            {
+                writer.Write(timing.ToString());
+            }
         }
         public void LoadTiming(ref double timing)
         {

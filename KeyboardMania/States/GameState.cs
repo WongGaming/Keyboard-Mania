@@ -349,8 +349,8 @@ namespace KeyboardMania.States
             HandleKeyReleases();
 
             //test below, to instantly call leaderboards
-            //if (_currentTime < finalEndTiming + 3000)
-            if(_currentTime > finalEndTiming + 3000)
+            //if (_currentTime < finalEndTiming + 10000)
+            if (_currentTime > finalEndTiming + 10000 && _activeNotesByLane.All(lane => lane.Value.Count == 0))
             {
                 var saveAverageHitTiming = new AverageHitTiming(_content);
                _latencyRemover = _latencyRemover - _hitTimingsAverage;

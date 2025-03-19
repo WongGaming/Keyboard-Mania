@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using NAudio.MediaFoundation;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,6 +27,7 @@ namespace KeyboardMania.States
         private SpriteFont _font;
         private GraphicsDevice _graphicsDevice;
         private List<string> _beatmaps;
+        string saveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Leaderboard");
         public BeatmapChooserState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
             : base(game, graphicsDevice, content)
         {
@@ -37,6 +39,11 @@ namespace KeyboardMania.States
             _beatmaps = new List<string>();
             LoadFolders();
             GetBeatmaps();
+            
+            if (!Directory.Exists(saveDirectory))
+            {
+                Directory.CreateDirectory(saveDirectory);
+            }
             var buttonTexture = _content.Load<Texture2D>("Controls/Button");
             int buttonSpacing = 50;
             var buttonFont = _content.Load<SpriteFont>("Fonts/Font");
@@ -83,6 +90,16 @@ namespace KeyboardMania.States
         {
             for(int i = 0; i < _folders.Count; i++)
             {
+                string leaderboardFilePath = Path.Combine(saveDirectory, $"{_folders[i]}.txt");
+                if (!File.Exists(leaderboardFilePath))
+                {
+                    if (!File.Exists(leaderboardFilePath))
+                    {
+                        using (var leaderboardFile = File.Create(leaderboardFilePath))
+                        {
+                        }
+                    }
+                }
                 var beatmaps = Directory.GetFiles(Path.Combine(_rootDirectory, _folders[i]), "*.osu");
                 foreach (var osu in beatmaps)
                 {
