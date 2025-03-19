@@ -215,6 +215,10 @@ namespace KeyboardMania.States
 
                 if (_selectedItem == 0)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _logoScale = (float)intValue;
@@ -222,6 +226,10 @@ namespace KeyboardMania.States
                 }
                 else if (_selectedItem == 1)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _keyScaleFactor = (float)intValue;
@@ -229,6 +237,10 @@ namespace KeyboardMania.States
                 }
                 else if (_selectedItem == 2)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _comboScaleFactor = (float)intValue;
@@ -236,6 +248,10 @@ namespace KeyboardMania.States
                 }
                 else if (_selectedItem == 3)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _scoreScaleFactor = (float)intValue;
@@ -243,6 +259,10 @@ namespace KeyboardMania.States
                 }
                 else if (_selectedItem == 4)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _hitScaleFactor = (float)intValue;

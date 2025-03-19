@@ -63,7 +63,7 @@ namespace KeyboardMania
             gameplaySettingsContent += $"notevelocity = {noteVelocity}\n";
             gameplaySettingsContent += "keymapping = d,f,j,k\n";
             gameplaySettingsContent += "latencyremover = 222.92825\n";
-            gameplaySettingsContent += "fadeintiming = 0\n";
+            gameplaySettingsContent += "fadeintiming = 1000\n";
             gameplaySettingsContent += "audiolatency = 0\n";
             #endregion
 
@@ -115,7 +115,7 @@ namespace KeyboardMania
             gameplaySettingsContent += $"notevelocity = {noteVelocity}\n";
             gameplaySettingsContent += "keymapping = d,f,j,k\n";
             gameplaySettingsContent += "latencyremover = 222.92825\n";
-            gameplaySettingsContent += "fadeintiming = 0\n";
+            gameplaySettingsContent += "fadeintiming = 1000\n";
             gameplaySettingsContent += "audiolatency = 0\n";
             string CurrentFileContent = File.ReadAllText(settingsFilePath);
             CurrentFileContent = Regex.Replace(CurrentFileContent, @"\[Gameplay Settings\][\s\S]*", gameplaySettingsContent);

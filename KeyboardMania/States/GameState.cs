@@ -10,6 +10,7 @@ using KeyboardMania.Controls;
 using Microsoft.Win32;
 using System.Reflection.Metadata;
 using System.Diagnostics.SymbolStore;
+using System.Linq;
 
 namespace KeyboardMania.States
 {
@@ -41,6 +42,7 @@ namespace KeyboardMania.States
         private List<double> _hitTimings = new List<double>();
         // Track hit timings to adjust input lag
         private double _hitTimingsSum = 0;
+        private double _hitTimingsAverage = 0;
         private int _previousScrollValue = 0; // Store the initial scroll value
         private bool firstNotePress = false;
 
@@ -376,13 +378,15 @@ namespace KeyboardMania.States
                 {
                     _hitTimings.Add(timeDifference);
                     _hitTimingsSum += timeDifference;
-                    _comboCount = -1;
+                    _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count();
+                    _comboCount = 0;
                     return true;
                 }
                 if (Math.Abs(timeDifference) <= _scoreMargins["50"])
                 {
                     _hitTimings.Add(timeDifference);
                     _hitTimingsSum += timeDifference;
+                    _hitTimingsAverage = _hitTimingsSum / _hitTimings.Count();
                     return true;
                 }
             }

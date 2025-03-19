@@ -236,6 +236,10 @@ namespace KeyboardMania.States
 
                 if (_selectedItem == 0)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _noteVelocity = (float)intValue;
@@ -244,6 +248,10 @@ namespace KeyboardMania.States
 
                 else if (_selectedItem == 1)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = _lastWorkingKeyMap;
+                    }
                     if (CheckKeyMapFormat(_settingValues[_selectedItem]))
                     {
                         KeyMappingParse(_settingValues[_selectedItem]);
@@ -251,6 +259,10 @@ namespace KeyboardMania.States
                 }
                 else if (_selectedItem == 2)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _latencyRemover = (float)intValue;
@@ -258,6 +270,10 @@ namespace KeyboardMania.States
                 }
                 else if (_selectedItem == 3)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _fadeInTiming = intValue;
@@ -265,6 +281,10 @@ namespace KeyboardMania.States
                 }
                 else if (_selectedItem == 4)
                 {
+                    if (_settingValues[_selectedItem] == "")
+                    {
+                        _settingValues[_selectedItem] = "0";
+                    }
                     if (int.TryParse(_settingValues[_selectedItem], out int intValue))
                     {
                         _audioLatency = (float)intValue;
