@@ -286,7 +286,6 @@ namespace KeyboardMania.States
                         };
                         activeNotes.Add(note);
                         hitObjects.RemoveAt(i); //remove the note from the hitObjects list once it has spawned
-                        Console.WriteLine("hello i will break code (Give me full marks)");
                     }
                 }
                 int currentNote = 0;
@@ -299,7 +298,11 @@ namespace KeyboardMania.States
                     // Check if note is hit
                     if (CheckForHit(note, _hitPointY, lane) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
-                        _comboCount++; // Increase combo count, FOR SINGLE NOTES COMMENT TO CHECK IF HITS REGISTERED
+                        double timeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover;
+                        if (Math.Abs(timeDifference) !< _scoreMargins["50"])
+                        { 
+                            _comboCount++;
+                        }
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                         HandleScoreMargin(note, _hitTimings[_hitTimings.Count-1]);
@@ -323,6 +326,12 @@ namespace KeyboardMania.States
                         _comboCount += 1;
                         currentNote = currentNote + 1;
                         firstNotePress = false;
+                        }
+                        else if (Math.Abs(_hitTimings[_hitTimings.Count - 1]) < _scoreMargins["0"])
+                        {
+                            _comboCount = 0;
+                            _hitTexture = _allHitTextures[0];
+                            _endHitTextureTime = _currentTime + 500;
                         }
                     }
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note) && firstNotePress == true)
@@ -353,7 +362,7 @@ namespace KeyboardMania.States
             {
                 _keysPressed[lane] = true; // Mark key as pressed
                 // Calculate the time difference
-                double timeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover; // Adjusted for latency
+                double timeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover;
 
                 if (Math.Abs(timeDifference) <= _scoreMargins["0"] && Math.Abs(timeDifference) > _scoreMargins["50"])
                 {
@@ -371,9 +380,14 @@ namespace KeyboardMania.States
                     return true;
                 }
             }
-            if (note.HitObject.IsHeldNote && _keysPressed[lane] && note._firstPressed == true)
+            double holdTimeDifference = _currentTime - note.HitObject.StartTime - _latencyRemover;
+            if (note.HitObject.IsHeldNote && _keysPressed[lane] && note._firstPressed == true && Math.Abs(holdTimeDifference) <= _scoreMargins["0"])
             {
                 _comboCount += 1;
+                if (Math.Abs(holdTimeDifference) >= _scoreMargins["50"])
+                {
+                    _comboCount = 0;
+                }
                 note._firstPressed = false;
                 if (note._currentlyHeld == false)
                 {
