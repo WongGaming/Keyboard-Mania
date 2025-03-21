@@ -219,9 +219,9 @@ namespace KeyboardMania.States
                     {
                         _settingValues[_selectedItem] = "0";
                     }
-                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    if (float.TryParse(_settingValues[_selectedItem], out float floatValue))
                     {
-                        _logoScale = (float)intValue;
+                        _logoScale = floatValue;
                     }
                 }
                 else if (_selectedItem == 1)
@@ -230,9 +230,9 @@ namespace KeyboardMania.States
                     {
                         _settingValues[_selectedItem] = "0";
                     }
-                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    if (float.TryParse(_settingValues[_selectedItem], out float floatValue))
                     {
-                        _keyScaleFactor = (float)intValue;
+                        _keyScaleFactor = floatValue;
                     }
                 }
                 else if (_selectedItem == 2)
@@ -241,9 +241,9 @@ namespace KeyboardMania.States
                     {
                         _settingValues[_selectedItem] = "0";
                     }
-                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    if (float.TryParse(_settingValues[_selectedItem], out float floatValue))
                     {
-                        _comboScaleFactor = (float)intValue;
+                        _comboScaleFactor = floatValue;
                     }
                 }
                 else if (_selectedItem == 3)
@@ -252,9 +252,9 @@ namespace KeyboardMania.States
                     {
                         _settingValues[_selectedItem] = "0";
                     }
-                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    if (float.TryParse(_settingValues[_selectedItem], out float floatValue))
                     {
-                        _scoreScaleFactor = (float)intValue;
+                        _scoreScaleFactor = floatValue;
                     }
                 }
                 else if (_selectedItem == 4)
@@ -263,9 +263,9 @@ namespace KeyboardMania.States
                     {
                         _settingValues[_selectedItem] = "0";
                     }
-                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    if (float.TryParse(_settingValues[_selectedItem], out float floatValue))
                     {
-                        _hitScaleFactor = (float)intValue;
+                        _hitScaleFactor = floatValue;
                     }
                 }
                 firstPress = false;

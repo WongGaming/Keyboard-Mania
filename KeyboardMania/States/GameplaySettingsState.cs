@@ -253,9 +253,9 @@ namespace KeyboardMania.States
                     {
                         _settingValues[_selectedItem] = "0";
                     }
-                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    if (float.TryParse(_settingValues[_selectedItem], out float floatValue))
                     {
-                        _noteVelocity = (float)intValue;
+                        _noteVelocity = floatValue;
                     }
                 }
 
@@ -276,9 +276,9 @@ namespace KeyboardMania.States
                     {
                         _settingValues[_selectedItem] = "0";
                     }
-                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    if (float.TryParse(_settingValues[_selectedItem], out float floatValue))
                     {
-                        _latencyRemover = (float)intValue;
+                        _latencyRemover = floatValue;
                     }
                 }
                 else if (_selectedItem == 3)
@@ -298,9 +298,9 @@ namespace KeyboardMania.States
                     {
                         _settingValues[_selectedItem] = "0";
                     }
-                    if (int.TryParse(_settingValues[_selectedItem], out int intValue))
+                    if (float.TryParse(_settingValues[_selectedItem], out float floatValue))
                     {
-                        _audioLatency = (float)intValue;
+                        _audioLatency = floatValue;
                     }
                 }
                 firstPress = false;
