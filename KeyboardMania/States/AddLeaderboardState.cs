@@ -21,6 +21,7 @@ namespace KeyboardMania.States
         private bool _isTextBoxSelected;
         private string _message;
         SpriteFont font;
+        bool firstSave = true;
         private List<Component> _components;
 
         public AddLeaderboardState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, int score, string beatmapName)
@@ -77,31 +78,32 @@ namespace KeyboardMania.States
         {
             string saveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Leaderboard");
             string leaderboardFilePath = Path.Combine(saveDirectory, $"{_beatmapName}.txt");
-
-            List<string> leaderboardEntries = File.ReadAllLines(leaderboardFilePath).ToList();
-            leaderboardEntries.Add($"{_userInput} - {DateTime.Now} - {score}");
-
-            List<string> sortedEntries = new List<string>(leaderboardEntries);
-
-            for (int i = 0; i < sortedEntries.Count - 1; i++)
+            if (_userInput != null && _userInput != "" && firstSave)
             {
-                for (int j = 0; j < sortedEntries.Count - i - 1; j++)
-                {
-                    int score1 = int.Parse(sortedEntries[j].Split('-').Last().Trim());
-                    int score2 = int.Parse(sortedEntries[j + 1].Split('-').Last().Trim());
+                List<string> leaderboardEntries = File.ReadAllLines(leaderboardFilePath).ToList();
+                leaderboardEntries.Add($"{_userInput} - {DateTime.Now} - {score}");
+                List<string> sortedEntries = new List<string>(leaderboardEntries);
 
-                    if (score1 < score2)
+                for (int i = 0; i < sortedEntries.Count - 1; i++)
+                {
+                    for (int j = 0; j < sortedEntries.Count - i - 1; j++)
                     {
-                        string temp = sortedEntries[j];
-                        sortedEntries[j] = sortedEntries[j + 1];
-                        sortedEntries[j + 1] = temp;
+                        int score1 = int.Parse(sortedEntries[j].Split('-').Last().Trim());
+                        int score2 = int.Parse(sortedEntries[j + 1].Split('-').Last().Trim());
+
+                        if (score1 < score2)
+                        {
+                            string temp = sortedEntries[j];
+                            sortedEntries[j] = sortedEntries[j + 1];
+                            sortedEntries[j + 1] = temp;
+                        }
                     }
                 }
+
+                File.WriteAllLines(leaderboardFilePath, sortedEntries);
+                firstSave = false;
             }
-
-            File.WriteAllLines(leaderboardFilePath, sortedEntries);
-
-            _game.ChangeState(new MenuState(_game, _graphicsDevice, _content));
+                _game.ChangeState(new MenuState(_game, _graphicsDevice, _content));
         }
 
         public override void Update(GameTime gameTime)
