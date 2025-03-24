@@ -176,7 +176,7 @@ namespace KeyboardMania.States
             {
                 if (_settingSelected[i])
                 {
-                    spriteBatch.DrawString(_font, $"{_settingName[i]} is currently selected", new Vector2((_graphicsDevice.Viewport.Width) / 2, (_graphicsDevice.Viewport.Height) / 2 - 200), Color.White);
+                    spriteBatch.DrawString(_font, $"{_settingName[i]} is currently selected", new Vector2(100, 350), Color.White);
                 }
             }
             spriteBatch.End();

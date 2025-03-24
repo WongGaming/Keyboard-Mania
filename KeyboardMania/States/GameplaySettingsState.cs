@@ -206,10 +206,10 @@ namespace KeyboardMania.States
             {
                 if (_settingSelected[i])
                 {
-                    spriteBatch.DrawString(_font, $"{_settingName[i]} is currently selected", new Vector2((_graphicsDevice.Viewport.Width) / 2, (_graphicsDevice.Viewport.Height) / 2 - 200), Color.White);
+                    spriteBatch.DrawString(_font, $"{_settingName[i]} is currently selected", new Vector2(100, 350), Color.White);
                     if (i == 1)
                     {
-                        spriteBatch.DrawString(_font, "SAVE THIS IN THE FORMAT [0],[1],[2],[3] with NO spaces in between, and each bracket represents a key on the keyboard (integer or character) [THERE IS A COMMA INBETWEEN THE NUMBERS]", new Vector2((_graphicsDevice.Viewport.Width) / 2, (_graphicsDevice.Viewport.Height) / 2 - 150), Color.White);
+                        spriteBatch.DrawString(_font, "SAVE THIS IN THE FORMAT [0],[1],[2],[3] with NO spaces in between, and each bracket represents a key on the keyboard (integer or character) [THERE IS A COMMA INBETWEEN THE NUMBERS]", new Vector2(100, 400), Color.White);
                     }
                 }
             }
