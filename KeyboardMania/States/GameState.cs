@@ -1,5 +1,4 @@
-﻿//leave commented when not testing
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
@@ -16,6 +15,8 @@ namespace KeyboardMania.States
 {
     public class GameState : State
     {
+        #region Fields
+        #region MainFields
         private float _noteScaleFactor; //constant, because this is reliant on the keyscalefactor
         private string _beatmapName;
         private Texture2D _hitFeedbackTexture;
@@ -52,6 +53,7 @@ namespace KeyboardMania.States
         private List<Texture2D> _numberTextures;
 
         private List<HitFeedback> _hitFeedbacks; // List to track active hit feedbacks
+        #endregion
 
         #region NoteTextures
         private List<Texture2D> _noteTexture = new List<Texture2D>();
@@ -82,7 +84,7 @@ namespace KeyboardMania.States
         private float _scoreScaleFactor = 2.0f;
         private float _hitScaleFactor = 1.5f;
         #endregion
-
+        #endregion
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath, string beatmapName)
             : base(game, graphicsDevice, content)
         {
