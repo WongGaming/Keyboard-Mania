@@ -90,14 +90,13 @@ namespace KeyboardMania.States
             spriteBatch.End();
         }
 
-        private void LeaderboardButton_Click(object sender, EventArgs e)
-        {
-            _game.ChangeState(new ChooseLeaderboardState(_game, _graphicsDevice, _content));
-        }
-
         private void PlayGameButton_Click(object sender, EventArgs e)
         {
             _game.ChangeState(new BeatmapChooserState(_game, _graphicsDevice, _content));
+        }
+        private void LeaderboardButton_Click(object sender, EventArgs e)
+        {
+            _game.ChangeState(new ChooseLeaderboardState(_game, _graphicsDevice, _content));
         }
 
         private void SettingsButton_Click(object sender, EventArgs e)
