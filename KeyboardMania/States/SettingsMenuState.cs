@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using KeyboardMania.States;
+using System.IO;
 
 namespace KeyboardMania.States
 {
@@ -55,6 +56,12 @@ namespace KeyboardMania.States
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 4 * buttonSpacing),
                 Text = "Return",
             };
+            var defaultButton = new Button(buttonTexture, buttonFont)
+            {
+                Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) / 2 + 5 * buttonSpacing),
+                Text = "RESET TO DEFAULT",
+            };
+            defaultButton.Click += DefaultButton_Click;
 
             returnButton.Click += ReturnButton_Click;
 
@@ -63,7 +70,8 @@ namespace KeyboardMania.States
                     skinsChooserButton,
                     displaySettingsButton,
                     gameplaySettingsButton,
-                    returnButton
+                    returnButton,
+                    defaultButton
             };
         }
         private void SkinsChooserButton_Click(object sender, EventArgs e)
@@ -81,6 +89,13 @@ namespace KeyboardMania.States
         private void ReturnButton_Click(object sender, EventArgs e)
         {
             _game.ChangeState(new MenuState(_game, _graphicsDevice, _content));
+        }
+        private void DefaultButton_Click(object sender, EventArgs e)
+        {
+            var instantiateSettings = new InstantiateSettings();
+            string settingsFileLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
+            instantiateSettings.InitialiseSettings(settingsFileLocation);
+            _game.ChangeState(new SettingsMenuState(_game, _graphicsDevice, _content, settingsFileLocation));
         }
         public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
