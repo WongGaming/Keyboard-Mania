@@ -15,7 +15,6 @@ namespace KeyboardMania
         public void ChangeState(State state)
         {
             _nextState = state;
-
         }
 
         public Game1()

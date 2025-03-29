@@ -48,12 +48,12 @@ namespace KeyboardMania.States
             };
             LeaderboardButton.Click += LeaderboardButton_Click;
 
-            var optionsButton = new Button(buttonTexture, buttonFont)
+            var settingsButton = new Button(buttonTexture, buttonFont)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width - (buttonTexture.Width)) / 2, (_graphicsDevice.Viewport.Height - (buttonTexture.Height)) /2+ 3 * buttonSpacing),
-                Text = "Options",
+                Text = "Settings",
             };
-            optionsButton.Click += OptionsButton_Click;
+            settingsButton.Click += SettingsButton_Click;
 
             var quitGameButton = new Button(buttonTexture, buttonFont)
             {
@@ -67,7 +67,7 @@ namespace KeyboardMania.States
             {
                 playGameButton,
                 LeaderboardButton,
-                optionsButton,
+                settingsButton,
                 quitGameButton,
             };
         }
@@ -100,9 +100,9 @@ namespace KeyboardMania.States
             _game.ChangeState(new BeatmapChooserState(_game, _graphicsDevice, _content));
         }
 
-        private void OptionsButton_Click(object sender, EventArgs e)
+        private void SettingsButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new OptionsMenuState(_game, _graphicsDevice, _content, settingsFileLocation));
+            _game.ChangeState(new SettingsMenuState(_game, _graphicsDevice, _content, settingsFileLocation));
         }
         public override void Update(GameTime gameTime)
         {

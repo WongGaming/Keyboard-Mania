@@ -12,12 +12,12 @@ using KeyboardMania.States;
 
 namespace KeyboardMania.States
 {
-  public class OptionsMenuState : State
+  public class SettingsMenuState : State
   {
         private List<Component> _components;
         private Texture2D _logo; 
         float logoScale = 0.35f; // .75f = home pc, 0.35f = laptop
-        public OptionsMenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string settingsFileLocation) : base(game, graphicsDevice, content)
+        public SettingsMenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string settingsFileLocation) : base(game, graphicsDevice, content)
     {
             var parseDisplaySettings = new ParseDisplaySettings(content);
             parseDisplaySettings.ParseLogoScaling(settingsFileLocation, ref logoScale);

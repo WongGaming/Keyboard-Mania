@@ -153,7 +153,7 @@ namespace KeyboardMania.States
         }
         private void ReturnButton_Click(object sender, EventArgs e)
         {
-            _game.ChangeState(new OptionsMenuState(_game, _graphicsDevice, _content, _settingsFilePath));
+            _game.ChangeState(new SettingsMenuState(_game, _graphicsDevice, _content, _settingsFilePath));
         }
 
         private void InstantiateNoteTextureID()
