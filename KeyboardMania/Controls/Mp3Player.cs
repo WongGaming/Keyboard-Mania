@@ -18,7 +18,7 @@ public class Mp3Player
 
     public Mp3Player(string filePath)
     {
-        _waveOutDevice = new WaveOutEvent(); // You can choose different types of IWavePlayer
+        _waveOutDevice = new WaveOutEvent();
         _audioFileReader = new AudioFileReader(filePath);
         _waveOutDevice.Init(_audioFileReader);
     }
