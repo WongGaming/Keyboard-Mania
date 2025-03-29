@@ -70,12 +70,12 @@ namespace KeyboardMania
                     audioLatency = float.Parse(audioLatencyValue);
                     parsed.Add(true);
                 }
+            }
                 if (parsed.Count != 5)
                 {
                     var instantiateSettings = new InstantiateSettings();
                     instantiateSettings.InitialiseDisplay(settingsFilePath);
                 }
-            }
         }
         public void SaveNewSettings(string settingsFilePath, float noteVelocity, List<Keys> keyMapping, double latencyRemover, int fadeInTiming, float audioLatency)
         {
