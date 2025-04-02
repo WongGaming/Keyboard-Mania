@@ -66,6 +66,7 @@ namespace KeyboardMania.States
                 }
                 else if (args.Key == Keys.Enter)
                 {
+                    _isTextBoxSelected = false;
                     SaveScoreToLeaderboard(_score, _beatmapName);
                 }
                 else if (!char.IsControl(args.Character))
