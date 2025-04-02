@@ -125,7 +125,7 @@ namespace KeyboardMania.States
             _currentHitTextures.Clear();
             for (int i = 0; i < 6; i++)
             {
-                _currentHitTextures.Add("Circle");
+                _currentHitTextures.Add("Playful");
             }
             _currentHitTextureIDs.Clear();
             for (int i = 0; i < _allHitTextures.Count; i++)
