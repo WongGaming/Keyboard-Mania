@@ -219,7 +219,6 @@ namespace KeyboardMania.States
         }
         public override void Update(GameTime gameTime)
         {
-            // Start the song if it's the first update frame
             if (_currentTime + _audioLatency > fadeInTiming)
             {
                 _mp3Player.Play();
@@ -227,10 +226,9 @@ namespace KeyboardMania.States
 
             MouseState mouseState = Mouse.GetState();
             KeyboardState keyboardState = Keyboard.GetState();
-            //// Track the scroll wheel value
+            //// Track the scroll wheel value for volume manip (removed)
             //int scrollValue = mouseState.ScrollWheelValue;
 
-            //// Check if the scroll value has changed
             //if (scrollValue > _previousScrollValue)
             //{
             //    // Increase volume when scrolling up
@@ -242,13 +240,11 @@ namespace KeyboardMania.States
             //    _mp3Player.Volume = Math.Max(_mp3Player.Volume - 0.05f, 0.0f); // Decrement the volume, min 0.0f
             //}
 
-            //// Store the current scroll value for the next frame
             //_previousScrollValue = scrollValue;
 
             _mp3Player.Volume = 0.3f;
             _currentTime += gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            // Update hit feedbacks movement REPLACE THIS WITH SCALING + FADEOUT INSTEAD OF MOVEMENT (OSU MANIA STYLE)
             for (int i = _hitFeedbacks.Count - 1; i >= 0; i--)
             {
                 _hitFeedbacks[i].Update(gameTime);
@@ -340,7 +336,7 @@ namespace KeyboardMania.States
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note) && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
-                        _comboCount = 0; // Reset combo count, IF HOLD NOTE IS MISSED (OFFSCREEN) (THIS ONLY CHECKS IF THE END PASSES THE FRONT (CURRENTLY IGNORES THE FRONT)
+                        _comboCount = 0;
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                         _hitTexture = _allHitTextures[0];
@@ -350,8 +346,6 @@ namespace KeyboardMania.States
             }
             HandleKeyReleases();
 
-            //test below, to instantly call leaderboards
-            //if (_currentTime < finalEndTiming + 10000)
             if (_currentTime > finalEndTiming + 10000 && _activeNotesByLane.All(lane => lane.Value.Count == 0))
             {
                 var saveAverageHitTiming = new AverageHitTiming(_content);
