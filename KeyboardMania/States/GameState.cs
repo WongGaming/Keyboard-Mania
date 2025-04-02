@@ -248,7 +248,6 @@ namespace KeyboardMania.States
             _mp3Player.Volume = 0.3f;
             _currentTime += gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            // Update hit feedbacks movement REPLACE THIS WITH SCALING + FADEOUT INSTEAD OF MOVEMENT (OSU MANIA STYLE)
             for (int i = _hitFeedbacks.Count - 1; i >= 0; i--)
             {
                 _hitFeedbacks[i].Update(gameTime);
@@ -263,7 +262,6 @@ namespace KeyboardMania.States
                 var hitObjects = _hitObjectsByLane[lane];
                 var activeNotes = _activeNotesByLane[lane];
 
-                // sort active notes by their Y-position (by lower notes first)
                 activeNotes.Sort((n1, n2) => n1.Position.Y.CompareTo(n2.Position.Y));
 
                 for (int i = hitObjects.Count - 1; i >= 0; i--)
@@ -280,7 +278,7 @@ namespace KeyboardMania.States
                         float xPosition = (_screenWidth / 2) - (_keyWidth * NumberOfKeys / 2) + (hitObject.Lane * _keyWidth);
                         var note = new Note(_content, noteTexture, hitObject.IsHeldNote, _lengthTexture)
                         {
-                            Position = new Vector2(xPosition, -noteTexture[hitObject.Lane].Height * _noteScaleFactor), //the start position above the screen
+                            Position = new Vector2(xPosition, -noteTexture[hitObject.Lane].Height * _noteScaleFactor),
                             HitObject = hitObject,
                             Scale = _noteScaleFactor,
                             Velocity = new Vector2(0, _noteVelocity)
@@ -312,7 +310,7 @@ namespace KeyboardMania.States
                     else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
-                        _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
+                        _comboCount = 0;
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                         _hitTexture = _allHitTextures[0];
@@ -340,7 +338,7 @@ namespace KeyboardMania.States
                     else if (note.HitObject.IsHeldNote && note.IsHoldOffScreen(_screenHeight, note) && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
-                        _comboCount = 0; // Reset combo count, IF HOLD NOTE IS MISSED (OFFSCREEN) (THIS ONLY CHECKS IF THE END PASSES THE FRONT (CURRENTLY IGNORES THE FRONT)
+                        _comboCount = 0;
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                         _hitTexture = _allHitTextures[0];
@@ -350,8 +348,6 @@ namespace KeyboardMania.States
             }
             HandleKeyReleases();
 
-            //test below, to instantly call leaderboards
-            //if (_currentTime < finalEndTiming + 10000)
             if (_currentTime > finalEndTiming + 10000 && _activeNotesByLane.All(lane => lane.Value.Count == 0))
             {
                 var saveAverageHitTiming = new AverageHitTiming(_content);
