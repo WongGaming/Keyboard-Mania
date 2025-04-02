@@ -10,6 +10,7 @@ using Microsoft.Win32;
 using System.Reflection.Metadata;
 using System.Diagnostics.SymbolStore;
 using System.Linq;
+using NAudio.Wave;
 
 namespace KeyboardMania.States
 {
@@ -45,7 +46,7 @@ namespace KeyboardMania.States
         private double _hitTimingsSum = 0;
         private double _hitTimingsAverage = 0;
         private bool firstNotePress = false;
-
+        string mp3filePath;
         private int _score = 0;
 
         private Dictionary<int, List<HitObject>> _hitObjectsByLane;
@@ -88,6 +89,7 @@ namespace KeyboardMania.States
         public GameState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, string _osuFilePath, string _mp3FilePath, string beatmapName)
             : base(game, graphicsDevice, content)
         {
+            mp3filePath = _mp3FilePath;
             _keyMapping = new List<Keys>();
             _beatmapName = beatmapName;
             _hitFeedbackTexture = _content.Load<Texture2D>("Controls/mania-stage-light");
@@ -219,7 +221,6 @@ namespace KeyboardMania.States
         }
         public override void Update(GameTime gameTime)
         {
-            // Start the song if it's the first update frame
             if (_currentTime + _audioLatency > fadeInTiming)
             {
                 _mp3Player.Play();
@@ -227,10 +228,9 @@ namespace KeyboardMania.States
 
             MouseState mouseState = Mouse.GetState();
             KeyboardState keyboardState = Keyboard.GetState();
-            //// Track the scroll wheel value
+            //// Track the scroll wheel value for volume manip (removed)
             //int scrollValue = mouseState.ScrollWheelValue;
 
-            //// Check if the scroll value has changed
             //if (scrollValue > _previousScrollValue)
             //{
             //    // Increase volume when scrolling up
@@ -242,7 +242,6 @@ namespace KeyboardMania.States
             //    _mp3Player.Volume = Math.Max(_mp3Player.Volume - 0.05f, 0.0f); // Decrement the volume, min 0.0f
             //}
 
-            //// Store the current scroll value for the next frame
             //_previousScrollValue = scrollValue;
 
             _mp3Player.Volume = 0.3f;
@@ -262,6 +261,7 @@ namespace KeyboardMania.States
                 var hitObjects = _hitObjectsByLane[lane];
                 var activeNotes = _activeNotesByLane[lane];
 
+                // sort active notes by their Y-position (by lower notes first)
                 activeNotes.Sort((n1, n2) => n1.Position.Y.CompareTo(n2.Position.Y));
 
                 for (int i = hitObjects.Count - 1; i >= 0; i--)
@@ -278,7 +278,7 @@ namespace KeyboardMania.States
                         float xPosition = (_screenWidth / 2) - (_keyWidth * NumberOfKeys / 2) + (hitObject.Lane * _keyWidth);
                         var note = new Note(_content, noteTexture, hitObject.IsHeldNote, _lengthTexture)
                         {
-                            Position = new Vector2(xPosition, -noteTexture[hitObject.Lane].Height * _noteScaleFactor),
+                            Position = new Vector2(xPosition, -noteTexture[hitObject.Lane].Height * _noteScaleFactor), //the start position above the screen
                             HitObject = hitObject,
                             Scale = _noteScaleFactor,
                             Velocity = new Vector2(0, _noteVelocity)
@@ -310,7 +310,7 @@ namespace KeyboardMania.States
                     else if (note.IsOffScreen(_screenHeight) && !note.HitObject.IsHeldNote && firstNotePress == true)
                     {
                         activeNotes.RemoveAt(i);
-                        _comboCount = 0;
+                        _comboCount = 0; // Reset combo count, IF SINGLE NOTE IS MISSED (OFFSCREEN)
                         currentNote = currentNote + 1;
                         firstNotePress = false;
                         _hitTexture = _allHitTextures[0];
@@ -348,13 +348,13 @@ namespace KeyboardMania.States
             }
             HandleKeyReleases();
 
-            if (_currentTime > finalEndTiming + 10000 && _activeNotesByLane.All(lane => lane.Value.Count == 0))
-            {
-                var saveAverageHitTiming = new AverageHitTiming(_content);
-               _latencyRemover = _latencyRemover - _hitTimingsAverage;
-                saveAverageHitTiming.SaveTiming(_latencyRemover);
-                _game.ChangeState(new AddLeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
-            }
+                if (_currentTime > GetAudioLength(mp3filePath) && _activeNotesByLane.All(lane => lane.Value.Count == 0) && _currentTime > finalEndTiming)
+                {
+                    var saveAverageHitTiming = new AverageHitTiming(_content);
+                    _latencyRemover = _latencyRemover - _hitTimingsAverage;
+                    saveAverageHitTiming.SaveTiming(_latencyRemover);
+                    _game.ChangeState(new AddLeaderboardState(_game, _graphicsDevice, _content, _score, _beatmapName));
+                }
         }
         private bool CheckForHit(Note note, float hitPointY, int lane)
         {
@@ -592,6 +592,14 @@ namespace KeyboardMania.States
                 int number = letter - 48;
                 spriteBatch.Draw(_numberTextures[number], scorePosition, null, Color.White, 0f, Vector2.Zero, _scoreScaleFactor, SpriteEffects.None, 0f);
                 scorePosition.X += _numberTextures[number].Width * _scoreScaleFactor + scoreSpacing;
+            }
+        }
+
+        public double GetAudioLength(string filePath)
+        {
+            using (var audioFileReader = new Mp3FileReader(filePath))
+            {
+                return audioFileReader.TotalTime.TotalMilliseconds + 2500;
             }
         }
     }
