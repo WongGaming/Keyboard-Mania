@@ -173,6 +173,13 @@ namespace KeyboardMania.States
                     ParseScoreMargins(_scoreMargins, _overallDifficulty);
                     overallDifficultySection = false;
                 }
+                else if (overallDifficultySection && line.StartsWith("OverallDifficulty:"))
+                {
+                    string[] difficultyLine = line.Split("OverallDifficulty:");
+                    _overallDifficulty = Convert.ToSingle(difficultyLine[1]);
+                    ParseScoreMargins(_scoreMargins, _overallDifficulty);
+                    overallDifficultySection = false;
+                }
                 else if (hitObjectSection && !string.IsNullOrWhiteSpace(line))
                 {
                     var hitObject = ParseHitObject(line);
