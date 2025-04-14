@@ -110,11 +110,11 @@ namespace KeyboardMania.States
             {
                 if (i == _selectedItem)
                 {
-                    spriteBatch.DrawString(_font, _leaderboards[i], new Vector2(100, 100 + i * 20), Color.Red);
+                    spriteBatch.DrawString(_font, Path.GetFileNameWithoutExtension(_leaderboards[i]), new Vector2(100, 100 + i * 20), Color.Red);
                 }
                 else
                 {
-                    spriteBatch.DrawString(_font, _leaderboards[i], new Vector2(100, 100 + i * 20), Color.White);
+                    spriteBatch.DrawString(_font, Path.GetFileNameWithoutExtension(_leaderboards[i]), new Vector2(100, 100 + i * 20), Color.White);
                 }
             }
 
