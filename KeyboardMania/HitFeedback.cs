@@ -18,7 +18,7 @@ namespace KeyboardMania.Controls
 
         public void Update(GameTime gameTime)
         {
-            Position.Y += _velocity * (float)gameTime.ElapsedGameTime.TotalSeconds; //change this to instead change the vertical width to shrink + fadeout (saves more processor + how osu mania does it)
+            Position.Y += _velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch, float keyScaleFactor)
