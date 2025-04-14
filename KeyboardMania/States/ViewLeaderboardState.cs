@@ -70,7 +70,7 @@ namespace KeyboardMania.States
             {
                 component.Draw(gameTime, spriteBatch);
             }
-            spriteBatch.DrawString(_font, $"Leaderboard - {_leaderboard}", new Vector2(100, 50), Color.White);
+            spriteBatch.DrawString(_font, $"Leaderboard - {Path.GetFileNameWithoutExtension(_leaderboard)}", new Vector2(100, 50), Color.White);
             int y = 100;
             foreach (var line in _leaderboardLines)
             {
