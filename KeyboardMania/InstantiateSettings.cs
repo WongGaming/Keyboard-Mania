@@ -21,7 +21,7 @@ namespace KeyboardMania
                     Directory.CreateDirectory(settingsDirectory);
                 }
                 settingsFilePath = Path.Combine(settingsDirectory, "Settings.txt");
-                File.Create(settingsFilePath);
+                File.Create(settingsFilePath).Close();
             }
 
             #region SkinSettingsInstantiation

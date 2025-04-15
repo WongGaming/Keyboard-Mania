@@ -20,14 +20,9 @@ namespace KeyboardMania.States
         {
             settingsFileLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
             var instantiateSettings = new InstantiateSettings();
-            if ((settingsFileLocation.Count() == 0))
+            if (!File.Exists(settingsFileLocation))
             {
                 string _rootDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", ".."));
-                settingsFileLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyboardMania", "Settings.txt");
-                if (!Directory.Exists(settingsFileLocation))
-                {
-                    Directory.CreateDirectory(settingsFileLocation);
-                }
                 instantiateSettings.InitialiseSettings(_rootDirectory);
             }
             instantiateSettings.CheckForIncomplete(settingsFileLocation);
